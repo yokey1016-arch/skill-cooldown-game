@@ -5,6 +5,8 @@
 (() => {
   'use strict';
 
+  const DEBUG_HOTSPOTS = false;
+
   const ASSETS = {
     skillButton: 'assets/ui/skill-button-fire.png',
     hero: 'assets/sprites/hero.png',
@@ -761,17 +763,12 @@
     document.getElementById('startBtn').addEventListener('click', () => startBattle(1));
     document.getElementById('upgradeBtn').addEventListener('click', openUpgrade);
     document.getElementById('levelSelectBtn').addEventListener('click', () => showPage('levels'));
+    document.getElementById('navEquipmentBtn').addEventListener('click', openUpgrade);
+    document.getElementById('navSkillBtn').addEventListener('click', () => showToast('技能页暂未开放'));
+    document.getElementById('navTalentBtn').addEventListener('click', () => showToast('天赋页暂未开放'));
     document.getElementById('levelBackBtn').addEventListener('click', () => showPage('home'));
     document.getElementById('battleHomeBtn').addEventListener('click', () => {
       if (confirm('确定返回首页？本局强化和进度会清空。')) showPage('home');
-    });
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      if (confirm('确定重置存档？金币、通关和装备等级都会清空。')) {
-        save = { ...DEFAULT_SAVE };
-        writeSave();
-        updateHome();
-        showToast('存档已重置');
-      }
     });
     dom.levelList.addEventListener('click', event => {
       const btn = event.target.closest('[data-level-id]');
@@ -849,9 +846,14 @@
     probe.src = ASSETS.skillButton;
   }
 
+  function applyHotspotDebug() {
+    document.querySelectorAll('.hotspot').forEach(btn => btn.classList.toggle('debug', DEBUG_HOTSPOTS));
+  }
+
   function boot() {
     setViewportHeight();
     initAssetCssVars();
+    applyHotspotDebug();
     resetRunBuffs();
     bindEvents();
     updateHome();
