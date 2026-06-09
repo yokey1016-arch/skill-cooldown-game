@@ -27,53 +27,73 @@
   const SAVE_KEY = 'skillCooldownGameSaveV1';
   const DEFAULT_SAVE = {
     gold: 0,
-    highestLevel: 1,
+    highestLevel: 2,
     weaponLevel: 1,
     speedLevel: 1,
     cooldownLevel: 1,
     firstClear1: false,
     firstClear2: false,
+    firstClear3: false,
+    firstClear4: false,
+    firstClear5: false,
+    firstClear6: false,
+    firstClear7: false,
+    firstClear8: false,
   };
+
+  function makeWave(type, count, lanes = [0, 1, 2]) {
+    return Array.from({ length: count }, (_, index) => ({ type, lane: lanes[index % lanes.length] }));
+  }
 
   const LEVELS = {
     1: {
-      id: 1,
-      title: '第 1 关：新手怪潮',
-      shortName: '新手怪潮',
-      reward: 80,
-      firstReward: 50,
-      wallHp: 100,
-      spawnInterval: 1150,
-      description: '怪物较慢，适合教学。击杀 5 个怪物触发一次本局强化。',
-      buffKills: [5],
-      waves: [
-        ...Array(10).fill('slime'),
-        ...Array(2).fill('lava-slime'),
-      ],
+      id: 1, title: '第 1 关：新手怪潮', shortName: '新手怪潮', reward: 80, firstReward: 50, wallHp: 100,
+      spawnInterval: 1150, description: '怪物较慢，适合教学。击杀 5 个怪物触发一次本局强化。', buffKills: [5],
+      waves: [...makeWave('slime', 10), ...makeWave('lava-slime', 2, [1])],
     },
     2: {
-      id: 2,
-      title: '第 2 关：高速突袭',
-      shortName: '高速突袭',
-      reward: 120,
-      firstReward: 80,
-      wallHp: 100,
-      spawnInterval: 760,
-      description: '怪物更多，速度更快。击杀 5 个和 10 个怪物各触发一次本局强化。',
-      buffKills: [5, 10],
-      waves: [
-        ...Array(8).fill('slime'),
-        ...Array(8).fill('goblin'),
-        ...Array(2).fill('demon'),
-      ],
+      id: 2, title: '第 2 关：高速突袭', shortName: '高速突袭', reward: 120, firstReward: 80, wallHp: 100,
+      spawnInterval: 760, description: '怪物更多，速度更快。击杀 5 个和 10 个怪物各触发一次本局强化。', buffKills: [5, 10],
+      waves: [...makeWave('slime', 8), ...makeWave('goblin', 8, [0, 2]), ...makeWave('demon', 2, [1])],
+    },
+    3: {
+      id: 3, title: '第 3 关：三路压境', shortName: '三路压境', reward: 160, firstReward: 100, wallHp: 100,
+      spawnInterval: 850, description: '三条路线同时出现怪物，考验左右滑动和自动攻击目标选择。', buffKills: [6, 14],
+      waves: [...makeWave('slime', 12), ...makeWave('goblin', 6, [0, 2]), ...makeWave('lava-slime', 3, [1])],
+    },
+    4: {
+      id: 4, title: '第 4 关：熔岩暴动', shortName: '熔岩暴动', reward: 200, firstReward: 120, wallHp: 100,
+      spawnInterval: 800, description: '熔岩怪数量增加，血量更高，需要合理释放火雨术。', buffKills: [6, 15], hpMul: 1.06,
+      waves: [...makeWave('slime', 10), ...makeWave('lava-slime', 10), ...makeWave('goblin', 4, [0, 2])],
+    },
+    5: {
+      id: 5, title: '第 5 关：恶魔先锋', shortName: '恶魔先锋', reward: 260, firstReward: 160, wallHp: 110,
+      spawnInterval: 780, description: '恶魔精英怪开始压线，需要装备升级和技能配合。', buffKills: [6, 14, 22],
+      waves: [...makeWave('slime', 8), ...makeWave('goblin', 8, [0, 2]), ...makeWave('lava-slime', 5), ...makeWave('demon', 4, [1, 0, 2])],
+    },
+    6: {
+      id: 6, title: '第 6 关：传送门失控', shortName: '传送门失控', reward: 320, firstReward: 200, wallHp: 110,
+      spawnInterval: 650, description: '顶部三个传送门快速出怪，怪物生成节奏更密集。', buffKills: [8, 18, 28], speedMul: 1.06,
+      waves: [...makeWave('slime', 12), ...makeWave('goblin', 12), ...makeWave('lava-slime', 6), ...makeWave('demon', 3, [1])],
+    },
+    7: {
+      id: 7, title: '第 7 关：黑潮围城', shortName: '黑潮围城', reward: 420, firstReward: 260, wallHp: 120,
+      spawnInterval: 600, description: '大量怪物连续压线，考验火雨术 CD 和本局强化选择。', buffKills: [8, 20, 34], hpMul: 1.10, speedMul: 1.10,
+      waves: [...makeWave('slime', 16), ...makeWave('goblin', 14), ...makeWave('lava-slime', 8), ...makeWave('demon', 5, [1, 0, 2])],
+    },
+    8: {
+      id: 8, title: '第 8 关：暗黑领主', shortName: '暗黑领主', reward: 600, firstReward: 400, wallHp: 130,
+      spawnInterval: 650, description: 'Boss 关。前半段清理怪潮，后半段暗黑领主出现。', buffKills: [8, 18], ordered: true,
+      waves: [...makeWave('slime', 8), ...makeWave('goblin', 8, [0, 2]), ...makeWave('lava-slime', 6), ...makeWave('demon', 3, [1]), { type: 'boss', lane: 1 }, ...makeWave('slime', 4), ...makeWave('goblin', 4, [0, 2])],
     },
   };
 
   const MONSTERS = {
     slime: { name: '普通史莱姆', hp: 24, speed: 30, damage: 6, gold: 6, className: 'slime', assetKey: 'slime' },
-    'lava-slime': { name: '厚皮史莱姆', hp: 38, speed: 26, damage: 8, gold: 11, className: 'lava-slime', assetKey: 'slime' },
+    'lava-slime': { name: '熔岩史莱姆', hp: 38, speed: 26, damage: 8, gold: 11, className: 'lava-slime', assetKey: 'lavaSlime' },
     goblin: { name: '哥布林', hp: 26, speed: 48, damage: 7, gold: 8, className: 'goblin', assetKey: 'goblin' },
     demon: { name: '恶魔精英', hp: 95, speed: 24, damage: 18, gold: 22, className: 'demon', assetKey: 'demon' },
+    boss: { name: '暗黑领主', hp: 440, speed: 16, damage: 30, gold: 80, className: 'boss', assetKey: 'demon', isBoss: true },
   };
 
   const UPGRADES = {
@@ -144,6 +164,9 @@
     hero: document.getElementById('hero'),
     battleLevelName: document.getElementById('battleLevelName'),
     wallHpText: document.getElementById('wallHpText'),
+    bossBar: document.getElementById('bossBar'),
+    bossName: document.getElementById('bossName'),
+    bossHpFill: document.getElementById('bossHpFill'),
     remainingText: document.getElementById('remainingText'),
     battleGoldText: document.getElementById('battleGoldText'),
     fireSkillBtn: document.getElementById('fireSkillBtn'),
@@ -181,6 +204,8 @@
     earnedGold: 0,
     runBuffs: null,
     pendingBuffKills: [],
+    boss: null,
+    bossBuffGiven: false,
     lastTime: 0,
   };
 
@@ -225,6 +250,24 @@
 
   function currentSkillCooldown() {
     return SKILL_COOLDOWNS[save.cooldownLevel] * battle.runBuffs.skillCdMul;
+  }
+
+
+  function isLevelUnlocked(levelId) {
+    return levelId <= Math.max(2, save.highestLevel || 1);
+  }
+
+  function firstClearKey(levelId) {
+    return `firstClear${levelId}`;
+  }
+
+  function levelMultiplier(levelId) {
+    return 1 + (levelId - 1) * 0.12;
+  }
+
+  function expandLevelQueue(level) {
+    const queue = level.waves.map(entry => (typeof entry === 'string' ? { type: entry } : { ...entry }));
+    return level.ordered ? queue : shuffle(queue);
   }
 
   function setViewportHeight() {
@@ -274,16 +317,17 @@
   function renderLevels() {
     dom.levelList.innerHTML = '';
     Object.values(LEVELS).forEach(level => {
-      const cleared = save[`firstClear${level.id}`];
+      const cleared = save[firstClearKey(level.id)];
+      const unlocked = isLevelUnlocked(level.id);
       const card = document.createElement('article');
-      card.className = 'level-card';
+      card.className = `level-card ${unlocked ? '' : 'locked'}`;
       card.innerHTML = `
-        <h3>${level.title}</h3>
+        <h3>第 ${level.id} 关：${level.shortName}</h3>
         <p>奖励金币 ${level.reward}，首次通关额外金币 ${level.firstReward}</p>
         <p>${level.description}</p>
         <div class="level-footer">
-          <span class="badge">${cleared ? '已通关' : '可挑战'}</span>
-          <button class="btn btn-secondary" data-level-id="${level.id}">挑战</button>
+          <span class="badge">${cleared ? '已通关' : (unlocked ? '可挑战' : '未解锁')}</span>
+          <button class="btn btn-secondary" data-level-id="${level.id}">${unlocked ? '挑战' : '未解锁'}</button>
         </div>`;
       dom.levelList.appendChild(card);
     });
@@ -319,6 +363,11 @@
   }
 
   function startBattle(levelId) {
+    if (!isLevelUnlocked(levelId)) {
+      showToast('请先通关上一关');
+      alert('请先通关上一关');
+      return;
+    }
     closeModal();
     resetRunBuffs();
     const level = LEVELS[levelId];
@@ -330,7 +379,7 @@
       monsters: [],
       bullets: [],
       effects: [],
-      spawnQueue: shuffle([...level.waves]),
+      spawnQueue: expandLevelQueue(level),
       spawnTimer: 250,
       attackTimer: 250,
       skillTimer: 0,
@@ -341,6 +390,8 @@
       spawned: 0,
       earnedGold: 0,
       pendingBuffKills: [...level.buffKills],
+      boss: null,
+      bossBuffGiven: false,
       lastTime: performance.now(),
     });
     dom.entityLayer.innerHTML = '';
@@ -365,6 +416,8 @@
     battle.monsters = [];
     battle.bullets = [];
     battle.effects = [];
+    battle.boss = null;
+    updateBossBar();
     if (clearBuffs) resetRunBuffs();
   }
 
@@ -406,6 +459,7 @@
     updateMonsters(dt);
     updateBullets(dt);
     updateEffects(dt);
+    updateBossBehavior(dt);
     updateBattleHud();
     checkBattleEnd();
   }
@@ -427,37 +481,67 @@
     });
   }
 
-  function spawnMonster() {
-    const type = battle.spawnQueue.shift();
+  function spawnMonster(forced = null) {
+    const entry = forced || battle.spawnQueue.shift();
+    const type = typeof entry === 'string' ? entry : entry.type;
     const cfg = MONSTERS[type];
-    const laneIndex = Math.floor(Math.random() * laneRatios.length);
+    const laneIndex = typeof entry?.lane === 'number' ? entry.lane : Math.floor(Math.random() * laneRatios.length);
     const x = battle.width * laneRatios[laneIndex];
-    const y = battle.height * 0.13;
+    const y = battle.height * (cfg.isBoss ? 0.11 : 0.13);
     const el = document.createElement('div');
     el.className = `monster ${cfg.className}`;
     el.innerHTML = `<div class="monster-body"><img class="monster-sprite" src="${monsterAsset(cfg)}" alt="${cfg.name}" draggable="false"></div><span class="monster-hp hpbar"><i style="width:100%"></i></span>`;
     const sprite = el.querySelector('.monster-sprite');
     bindMonsterImageFallback(sprite, el);
     dom.entityLayer.appendChild(el);
-    battle.monsters.push({
-      id: uid++, type, cfg, laneIndex, x, y,
-      hp: cfg.hp, maxHp: cfg.hp, attackTimer: 0, el,
-    });
-    battle.spawned += 1;
+    const monster = createMonsterState(type, cfg, laneIndex, x, y, el);
+    battle.monsters.push(monster);
+    if (cfg.isBoss) onBossSpawn(monster);
+    if (!forced) battle.spawned += 1;
     battle.spawnTimer = battle.level.spawnInterval;
     position(el, x, y);
+  }
+
+  function createMonsterState(type, cfg, laneIndex, x, y, el) {
+    const level = battle.levelId;
+    const hpMul = (cfg.isBoss ? 1 : levelMultiplier(level)) * (battle.level.hpMul || 1);
+    const speedMul = (cfg.isBoss ? 1 : (1 + (level - 1) * 0.04)) * (battle.level.speedMul || 1);
+    const damageMul = cfg.isBoss ? 1 : (1 + (level - 1) * 0.08);
+    const maxHp = Math.ceil(cfg.hp * hpMul);
+    return {
+      id: uid++, type, cfg, laneIndex, x, y, el,
+      hp: maxHp, maxHp,
+      speed: cfg.speed * speedMul,
+      damage: Math.ceil(cfg.damage * damageMul),
+      attackTimer: 0,
+      summonTimer: 3500,
+      enraged: false,
+    };
+  }
+
+  function onBossSpawn(monster) {
+    battle.boss = monster;
+    monster.hp = monster.maxHp = Math.ceil(MONSTERS.demon.hp * 4.7);
+    dom.battleField.classList.add('shake');
+    setTimeout(() => dom.battleField.classList.remove('shake'), 520);
+    showToast('暗黑领主降临！');
+    updateBossBar();
+    if (!battle.bossBuffGiven) {
+      battle.bossBuffGiven = true;
+      openBuffChoice('暗黑领主出现，选择一项强化迎战！');
+    }
   }
 
   function updateMonsters(dt) {
     const wallY = battle.height * 0.78;
     for (const monster of [...battle.monsters]) {
       if (monster.y < wallY) {
-        monster.y += monster.cfg.speed * dt;
+        monster.y += monster.speed * dt;
       } else {
         monster.attackTimer -= dt * 1000;
         if (monster.attackTimer <= 0) {
-          battle.wallHp = Math.max(0, battle.wallHp - monster.cfg.damage);
-          showFloat(monster.x, monster.y - 20, `城墙-${monster.cfg.damage}`, 'big');
+          battle.wallHp = Math.max(0, battle.wallHp - monster.damage);
+          showFloat(monster.x, monster.y - 20, `城墙-${monster.damage}`, 'big');
           monster.attackTimer = 1000;
         }
       }
@@ -465,6 +549,7 @@
       if (hp) hp.style.width = `${Math.max(0, monster.hp / monster.maxHp * 100)}%`;
       position(monster.el, monster.x, monster.y);
     }
+    updateBossBar();
   }
 
   function shootBullet() {
@@ -619,6 +704,7 @@
     clearTimeout(monster.hitTimer);
     monster.hitTimer = setTimeout(() => monster.el.classList.remove('is-hit'), 120);
     showFloat(monster.x + (Math.random() - 0.5) * 22, monster.y - 26 - Math.random() * 14, `-${finalDamage}`, big ? 'big' : '');
+    if (monster.cfg.isBoss) updateBossBar();
     if (monster.hp <= 0) killMonster(monster);
   }
 
@@ -629,6 +715,10 @@
     monster.el.classList.remove('is-hit');
     monster.el.classList.add('is-dead');
     battle.killed += 1;
+    if (monster.cfg.isBoss) {
+      battle.boss = null;
+      updateBossBar();
+    }
     const gold = Math.ceil(monster.cfg.gold * battle.runBuffs.goldMul);
     battle.earnedGold += gold;
     showCoin(monster.x, monster.y, gold);
@@ -639,8 +729,9 @@
     }
   }
 
-  function openBuffChoice() {
+  function openBuffChoice(title = '选择本局强化') {
     battle.paused = true;
+    document.getElementById('buffTitle').textContent = title;
     dom.buffOptions.innerHTML = '';
     sample(BUFF_POOL, 3).forEach(buff => {
       const card = document.createElement('button');
@@ -659,7 +750,7 @@
 
   function finishBattle(win) {
     const level = battle.level;
-    const firstKey = `firstClear${level.id}`;
+    const firstKey = firstClearKey(level.id);
     battle.active = false;
     cancelAnimationFrame(rafId);
     if (win) {
@@ -667,7 +758,7 @@
       const total = level.reward + firstBonus + battle.earnedGold;
       save.gold += total;
       save[firstKey] = true;
-      save.highestLevel = Math.max(save.highestLevel, Math.min(2, level.id + 1));
+      save.highestLevel = Math.max(save.highestLevel || 1, Math.min(8, level.id + 1));
       writeSave();
       showResult(true, total, firstBonus);
     } else {
@@ -690,10 +781,11 @@
     dom.resultActions.appendChild(homeBtn);
     if (win) {
       const nextId = battle.levelId + 1;
-      dom.resultActions.appendChild(actionButton(nextId <= 2 ? '下一关' : '再战一次', () => {
+      dom.resultActions.appendChild(actionButton(nextId <= 8 ? '下一关' : '已通关当前版本', () => {
         closeModal();
         resetResultModal();
-        startBattle(nextId <= 2 ? nextId : battle.levelId);
+        if (nextId <= 8) startBattle(nextId);
+        else showPage('home');
       }));
     } else {
       dom.resultActions.appendChild(actionButton('装备升级', () => { closeModal(); resetResultModal(); showPage('home'); openUpgrade(); }));
@@ -789,7 +881,7 @@
   }
 
   function openStatusModal() {
-    const cleared = [save.firstClear1, save.firstClear2].filter(Boolean).length;
+    const cleared = Array.from({ length: 8 }, (_, i) => i + 1).filter(id => save[firstClearKey(id)]).length;
     openInfoModal('当前状态', '这里展示当前本地存档数据。', `
       <div class="status-grid">
         <div>金币<strong>${save.gold}</strong></div>
@@ -828,6 +920,40 @@
     dom.wallHpText.textContent = `${Math.ceil(battle.wallHp)}/${battle.maxWallHp}`;
     dom.remainingText.textContent = remaining;
     dom.battleGoldText.textContent = battle.earnedGold;
+  }
+
+
+  function updateBossBar() {
+    const boss = battle.boss && !battle.boss.dead ? battle.boss : null;
+    dom.bossBar.classList.toggle('active', Boolean(boss));
+    if (!boss) {
+      dom.bossBar.classList.remove('enraged');
+      return;
+    }
+    const ratio = Math.max(0, boss.hp / boss.maxHp);
+    dom.bossName.textContent = boss.enraged ? '暗黑领主 · 狂暴' : '暗黑领主';
+    dom.bossHpFill.style.width = `${ratio * 100}%`;
+    dom.bossBar.classList.toggle('enraged', boss.enraged);
+  }
+
+  function updateBossBehavior(dt) {
+    const boss = battle.boss;
+    if (!boss || boss.dead) return;
+    if (!boss.enraged && boss.hp <= boss.maxHp * 0.5) {
+      boss.enraged = true;
+      boss.speed *= 1.15;
+      boss.el.classList.add('enraged');
+      showToast('暗黑领主进入狂暴阶段！');
+      updateBossBar();
+    }
+    if (boss.enraged) {
+      boss.summonTimer -= dt * 1000;
+      if (boss.summonTimer <= 0) {
+        spawnMonster({ type: Math.random() > 0.5 ? 'goblin' : 'slime', lane: Math.random() > 0.5 ? 0 : 2 });
+        spawnMonster({ type: 'slime', lane: 1 });
+        boss.summonTimer = 4200;
+      }
+    }
   }
 
   function updateSkillButton() {
