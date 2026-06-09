@@ -53,11 +53,10 @@ img { max-width: 100%; pointer-events: none; }
   position: relative;
   width: min(100vw, 430px);
   height: 100dvh;
-  max-height: 932px;
   margin: 0 auto;
   overflow: hidden;
   padding: 0;
-  background: #07020f;
+  background: #080311;
 }
 .page-home { display: none; }
 .page-home.active { display: block; }
@@ -68,42 +67,33 @@ img { max-width: 100%; pointer-events: none; }
   height: 100%;
   object-fit: cover;
   z-index: 0;
+  pointer-events: none;
 }
 .page-levels { align-items: center; background-image: linear-gradient(180deg, rgba(13, 12, 28, 0.12), rgba(13, 12, 28, 0.32)), url("assets/ui/level-select-bg.png"); }
 .page-battle { flex-direction: column; gap: 6px; padding: max(6px, env(safe-area-inset-top)) 6px max(8px, env(safe-area-inset-bottom)); background: #1a1628; }
 
 .home-overlay { position: absolute; inset: 0; z-index: 2; }
-.home-metric {
-  position: absolute;
-  z-index: 11;
-  padding: 2px 6px;
-  border-radius: 999px;
-  color: rgba(255, 247, 223, 0.88);
-  background: rgba(30, 16, 34, 0.22);
-  font-size: 10px;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0,0,0,.65);
-  backdrop-filter: blur(1.5px);
-  pointer-events: none;
-}
-.home-metric strong { color: var(--gold); font-size: 11px; }
-.metric-gold { top: 15.2%; left: 7%; }
-.metric-power { top: 15.2%; right: 7%; }
-.metric-weapon { top: 20.2%; left: 7%; }
-.metric-speed { top: 20.2%; left: 50%; transform: translateX(-50%); }
-.metric-cooldown { top: 20.2%; right: 7%; }
-.metric-highest { top: 24.2%; left: 50%; transform: translateX(-50%); }
+.home-stats { display: none; }
 .home-toast { position: absolute; z-index: 1100; left: 50%; bottom: 18%; min-width: 180px; transform: translateX(-50%); text-align: center; }
-.hotspot { position: absolute; z-index: 10; background: transparent; border: none; padding: 0; box-shadow: none; border-radius: 14px; }
-.hotspot.debug { background: rgba(255, 0, 0, 0.25); outline: 1px solid rgba(255,255,255,.5); }
-.hotspot-start { left: 4%; right: 4%; top: 57.5%; height: 9.5%; }
-.hotspot-upgrade { left: 4%; width: 43%; top: 69.5%; height: 7%; }
-.hotspot-levels { right: 4%; width: 43%; top: 69.5%; height: 7%; }
-.hotspot-status { left: 4%; right: 4%; top: 13.5%; height: 10%; }
-.hotspot-guide { left: 8%; right: 8%; top: 27%; height: 10%; }
-.hotspot-nav-equipment { left: 0%; width: 33.33%; bottom: 0%; height: 8.5%; }
-.hotspot-nav-skill { left: 33.33%; width: 33.33%; bottom: 0%; height: 8.5%; }
-.hotspot-nav-talent { left: 66.66%; width: 33.33%; bottom: 0%; height: 8.5%; }
+.home-hotspot {
+  position: absolute;
+  z-index: 20;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.home-hotspot.debug { background: rgba(255, 0, 0, 0.25); outline: 1px solid rgba(255,255,255,.6); }
+.hotspot-start { left: 7%; top: 67%; width: 86%; height: 8%; }
+.hotspot-upgrade { left: 7%; top: 78%; width: 40%; height: 7%; }
+.hotspot-levels { left: 53%; top: 78%; width: 40%; height: 7%; }
+.hotspot-guide { left: 7%; top: 86%; width: 86%; height: 7%; }
+.hotspot-nav-home { left: 0%; bottom: 0%; width: 20%; height: 8%; }
+.hotspot-nav-equipment { left: 20%; bottom: 0%; width: 20%; height: 8%; }
+.hotspot-nav-skill { left: 40%; bottom: 0%; width: 20%; height: 8%; }
+.hotspot-nav-talent { left: 60%; bottom: 0%; width: 20%; height: 8%; }
+.hotspot-nav-shop { left: 80%; bottom: 0%; width: 20%; height: 8%; }
 
 .safe-panel {
   width: 100%;
