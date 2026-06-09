@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>我的技能没有冷却</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app" class="app-shell" aria-live="polite">
+    <section id="homePage" class="page page-home active">
+      <div class="safe-panel home-card">
+        <p class="eyebrow">竖屏守城 · 自动射击</p>
+        <h1>我的技能没有冷却</h1>
+        <p class="subtitle">守住城墙，打穿怪潮</p>
+        <div class="stats-grid">
+          <div><span>金币</span><strong id="homeGold">0</strong></div>
+          <div><span>战斗力</span><strong id="homePower">310</strong></div>
+          <div><span>武器等级</span><strong id="homeWeapon">Lv.1</strong></div>
+          <div><span>火雨术 CD</span><strong id="homeCooldown">8 秒</strong></div>
+        </div>
+        <div id="toast" class="toast" role="status"></div>
+        <button id="startBtn" class="btn btn-primary">开始挑战</button>
+        <div class="button-row">
+          <button id="upgradeBtn" class="btn btn-secondary">装备升级</button>
+          <button id="levelSelectBtn" class="btn btn-secondary">关卡选择</button>
+        </div>
+        <button id="resetBtn" class="btn btn-ghost">重置存档</button>
+      </div>
+    </section>
+
+    <section id="levelPage" class="page page-levels">
+      <div class="safe-panel level-panel">
+        <div class="panel-title-row">
+          <div>
+            <p class="eyebrow">选择战线</p>
+            <h2>关卡选择</h2>
+          </div>
+          <button id="levelBackBtn" class="btn btn-small">返回</button>
+        </div>
+        <div id="levelList" class="level-list"></div>
+      </div>
+    </section>
+
+    <section id="battlePage" class="page page-battle">
+      <header class="battle-topbar">
+        <div><span>关卡</span><strong id="battleLevelName">第 1 关</strong></div>
+        <div><span>城墙</span><strong id="wallHpText">100/100</strong></div>
+        <div><span>剩余</span><strong id="remainingText">0</strong></div>
+        <div><span>金币</span><strong id="battleGoldText">0</strong></div>
+      </header>
+
+      <div id="battleField" class="battle-field">
+        <img class="portal portal-left" src="assets/fx/portal.png" alt="传送门" draggable="false" />
+        <img class="portal portal-mid" src="assets/fx/portal.png" alt="传送门" draggable="false" />
+        <img class="portal portal-right" src="assets/fx/portal.png" alt="传送门" draggable="false" />
+        <div class="lane-guide lane-1"></div>
+        <div class="lane-guide lane-2"></div>
+        <div class="lane-guide lane-3"></div>
+        <div class="wall-line"><span>城墙防线</span></div>
+        <div id="entityLayer" class="entity-layer"></div>
+        <img id="hero" class="hero" src="assets/sprites/hero.png" alt="玩家角色" draggable="false" />
+      </div>
+
+      <footer class="battle-controls">
+        <button id="fireSkillBtn" class="skill-btn" aria-label="释放火雨术">
+          <img src="assets/ui/skill-button-fire.png" alt="火雨术" draggable="false" />
+          <span id="skillCdText" class="skill-cd ready">就绪</span>
+        </button>
+        <button id="battleHomeBtn" class="btn btn-secondary">返回首页</button>
+      </footer>
+    </section>
+
+    <div id="modalLayer" class="modal-layer" aria-hidden="true">
+      <section id="upgradeModal" class="modal panel-upgrade" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
+        <button class="modal-close" data-close-modal>×</button>
+        <h2 id="upgradeTitle">装备升级</h2>
+        <p class="modal-subtitle">金币会永久保存，升级后战斗力立即提升。</p>
+        <div id="upgradeList" class="upgrade-list"></div>
+      </section>
+
+      <section id="buffModal" class="modal panel-result" role="dialog" aria-modal="true" aria-labelledby="buffTitle">
+        <h2 id="buffTitle">选择本局强化</h2>
+        <p class="modal-subtitle">强化仅在当前战斗生效，通关或失败后清空。</p>
+        <div id="buffOptions" class="buff-options"></div>
+      </section>
+
+      <section id="resultModal" class="modal panel-result" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+        <h2 id="resultTitle">通关成功</h2>
+        <p id="resultDesc" class="result-desc"></p>
+        <div id="resultStats" class="result-stats"></div>
+        <div id="resultActions" class="button-row"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
