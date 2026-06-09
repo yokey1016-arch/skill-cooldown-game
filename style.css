@@ -90,7 +90,9 @@ img { max-width: 100%; pointer-events: none; }
 .metric-gold { top: 15.2%; left: 7%; }
 .metric-power { top: 15.2%; right: 7%; }
 .metric-weapon { top: 20.2%; left: 7%; }
+.metric-speed { top: 20.2%; left: 50%; transform: translateX(-50%); }
 .metric-cooldown { top: 20.2%; right: 7%; }
+.metric-highest { top: 24.2%; left: 50%; transform: translateX(-50%); }
 .home-toast { position: absolute; z-index: 1100; left: 50%; bottom: 18%; min-width: 180px; transform: translateX(-50%); text-align: center; }
 .hotspot { position: absolute; z-index: 10; background: transparent; border: none; padding: 0; box-shadow: none; border-radius: 14px; }
 .hotspot.debug { background: rgba(255, 0, 0, 0.25); outline: 1px solid rgba(255,255,255,.5); }
