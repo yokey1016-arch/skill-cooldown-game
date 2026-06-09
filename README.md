@@ -65,6 +65,7 @@ skill-cooldown-game/
 - 怪物图片统一从 `game.js` 的 `ASSETS` 配置读取，并带有 `slime.png` fallback；若 fallback 仍加载失败，会显示暗紫色占位怪物，避免只剩血条。
 - 火雨术按钮同样使用 `ASSETS.skillButton` 注入 CSS 变量，图片失败时自动改用陨石图标，CSS 仍保留黑金火焰按钮兜底样式。
 - 本局强化卡片改为深紫黑魔法风按钮，标题金色、说明浅色，避免浏览器默认白底按钮。
+- 首页以 `home-bg.png` 的 390 × 844 设计稿为视觉主体，按钮仅使用百分比透明热区覆盖；`DEBUG_HOTSPOTS` 默认为 `false`，需要校准时可临时打开红色热区。
 
 ## 本地打开方式
 
