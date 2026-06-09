@@ -13,9 +13,11 @@
       <img class="home-bg" src="assets/ui/home-bg.png" alt="" draggable="false" />
       <div class="home-overlay" aria-label="首页操作热区">
         <div class="home-metric metric-gold" aria-label="金币"><strong id="homeGold">0</strong></div>
-        <div class="home-metric metric-power" aria-label="战斗力"><strong id="homePower">310</strong></div>
+        <div class="home-metric metric-power" aria-label="战斗力"><strong id="homePower">0</strong></div>
         <div class="home-metric metric-weapon" aria-label="武器等级"><strong id="homeWeapon">Lv.1</strong></div>
-        <div class="home-metric metric-cooldown" aria-label="火雨术冷却"><strong id="homeCooldown">8 秒</strong></div>
+        <div class="home-metric metric-speed" aria-label="攻速等级"><strong id="homeSpeed">Lv.1</strong></div>
+        <div class="home-metric metric-cooldown" aria-label="火雨术冷却"><strong id="homeCooldown">--</strong></div>
+        <div class="home-metric metric-highest" aria-label="最高通关"><strong id="homeHighest">未通关</strong></div>
         <div id="toast" class="toast home-toast" role="status"></div>
         <button id="startBtn" class="hotspot hotspot-start" aria-label="开始第1关"></button>
         <button id="upgradeBtn" class="hotspot hotspot-upgrade" aria-label="装备升级"></button>
@@ -44,7 +46,7 @@
     <section id="battlePage" class="page page-battle">
       <header class="battle-topbar">
         <div><span>关卡</span><strong id="battleLevelName">第 1 关</strong></div>
-        <div><span>城墙</span><strong id="wallHpText">100/100</strong></div>
+        <div><span>城墙</span><strong id="wallHpText">--</strong></div>
         <div><span>剩余</span><strong id="remainingText">0</strong></div>
         <div><span>金币</span><strong id="battleGoldText">0</strong></div>
       </header>
