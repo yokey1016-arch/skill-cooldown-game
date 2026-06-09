@@ -53,7 +53,9 @@ skill-cooldown-game/
         └── result-popup.png
 ```
 
-> 如果 `assets/sprites/hero.png` 暂时不存在，游戏会自动使用 `assets/sprites/demon.png` 作为玩家角色占位。代码中仍保留正式 hero 路径，后续补充 `hero.png` 后会自动使用正式角色图。
+> 当前 `assets/sprites/hero.png` 素材检测为缺失透明通道 / 不透明白底，为避免游戏中出现白色矩形底，运行时临时使用透明 `assets/sprites/demon.png` 作为玩家占位。代码仍保留正式 `hero.png` 路径；后续只需替换 `assets/sprites/hero.png` 为透明 PNG，即可将 `game.js` 中的 `activeHero` 改回正式主角。
+>
+> 当前 `assets/sprites/lava-slime.png` 橙红火焰占比过高。为满足“怪物本体不带火焰”的规则，游戏内临时复用透明 `slime.png` 表现厚皮史莱姆，火焰只用于子弹、火雨术陨石、爆炸和技能按钮。
 
 ## 本地打开方式
 
@@ -122,4 +124,3 @@ assets/ui/battle-bg-clean.png
 - 增加更多本局强化，例如连锁闪电、冰冻、毒雾。
 - 增加音效和背景音乐开关。
 - 增加更完整的新手引导。
-Updated Pages deployment.
