@@ -20,6 +20,8 @@
         <button id="startBtn" class="hotspot hotspot-start" aria-label="开始第1关"></button>
         <button id="upgradeBtn" class="hotspot hotspot-upgrade" aria-label="装备升级"></button>
         <button id="levelSelectBtn" class="hotspot hotspot-levels" aria-label="关卡选择"></button>
+        <button id="statusBtn" class="hotspot hotspot-status" aria-label="当前状态"></button>
+        <button id="guideBtn" class="hotspot hotspot-guide" aria-label="玩法说明"></button>
         <button id="navEquipmentBtn" class="hotspot hotspot-nav-equipment" aria-label="装备"></button>
         <button id="navSkillBtn" class="hotspot hotspot-nav-skill" aria-label="技能"></button>
         <button id="navTalentBtn" class="hotspot hotspot-nav-talent" aria-label="天赋"></button>
@@ -87,6 +89,14 @@
         <p id="resultDesc" class="result-desc"></p>
         <div id="resultStats" class="result-stats"></div>
         <div id="resultActions" class="button-row"></div>
+      </section>
+
+      <section id="infoModal" class="modal info-modal clean-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+        <button class="modal-close" data-close-modal>×</button>
+        <h2 id="infoTitle">信息</h2>
+        <p id="infoSubtitle" class="modal-subtitle"></p>
+        <div id="infoContent" class="info-content"></div>
+        <div id="infoActions" class="button-row info-actions"></div>
       </section>
     </div>
   </main>
