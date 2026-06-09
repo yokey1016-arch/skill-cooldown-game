@@ -252,6 +252,7 @@
     dom.modalLayer.classList.remove('active');
     dom.modalLayer.setAttribute('aria-hidden', 'true');
     [dom.upgradeModal, dom.buffModal, dom.resultModal].forEach(modal => modal.classList.remove('active'));
+    resetResultModal();
   }
 
   function updateHome() {
@@ -398,7 +399,7 @@
     const y = battle.height * 0.08;
     const el = document.createElement('div');
     el.className = `monster ${cfg.className}`;
-    el.innerHTML = `<img src="${ASSETS.sprites[type]}" alt="${cfg.name}" draggable="false"><span class="hpbar"><i style="width:100%"></i></span>`;
+    el.innerHTML = `<img class="monster-sprite" src="${ASSETS.sprites[type]}" alt="${cfg.name}" draggable="false"><span class="hpbar"><i style="width:100%"></i></span>`;
     dom.entityLayer.appendChild(el);
     battle.monsters.push({
       id: uid++, type, cfg, laneIndex, x, y,
@@ -542,20 +543,27 @@
   }
 
   function damageMonster(monster, damage, big) {
-    if (!battle.monsters.includes(monster)) return;
+    if (!battle.monsters.includes(monster) || monster.dead) return;
     const finalDamage = Math.ceil(damage);
     monster.hp -= finalDamage;
+    monster.el.classList.add('hit');
+    clearTimeout(monster.hitTimer);
+    monster.hitTimer = setTimeout(() => monster.el.classList.remove('hit'), 120);
     showFloat(monster.x, monster.y - 26, `-${finalDamage}`, big ? 'big' : '');
     if (monster.hp <= 0) killMonster(monster);
   }
 
   function killMonster(monster) {
+    if (monster.dead) return;
+    monster.dead = true;
     battle.monsters = battle.monsters.filter(item => item !== monster);
-    monster.el.remove();
+    monster.el.classList.remove('hit');
+    monster.el.classList.add('dead');
     battle.killed += 1;
     const gold = Math.ceil(monster.cfg.gold * battle.runBuffs.goldMul);
     battle.earnedGold += gold;
     showCoin(monster.x, monster.y, gold);
+    setTimeout(() => monster.el.remove(), 300);
     if (battle.pendingBuffKills[0] && battle.killed >= battle.pendingBuffKills[0]) {
       battle.pendingBuffKills.shift();
       openBuffChoice();
@@ -600,24 +608,35 @@
   }
 
   function showResult(win, gold, firstBonus) {
+    resetResultModal();
     dom.resultTitle.textContent = win ? '通关成功' : '城墙被攻破';
-    dom.resultDesc.textContent = win
-      ? `获得金币 ${gold}${firstBonus ? `（含首次通关额外 ${firstBonus}）` : ''}。`
-      : '怪物突破了防线，升级装备后再来挑战吧。';
-    dom.resultStats.textContent = win ? `当前战斗力：${power()}` : `当前战斗力：${power()} · 本局击杀：${battle.killed}`;
-    dom.resultActions.innerHTML = '';
-    const homeBtn = actionButton('返回首页', () => { closeModal(); showPage('home'); });
+    if (win) {
+      dom.resultDesc.innerHTML = `<strong>获得金币：${gold}</strong>${firstBonus ? `<span>首次通关奖励：${firstBonus}</span>` : ''}`;
+      dom.resultStats.textContent = `当前战斗力：${power()}`;
+    } else {
+      dom.resultDesc.textContent = '怪物突破了防线，升级装备后再来挑战吧';
+      dom.resultStats.textContent = `当前战斗力：${power()} · 本局击杀：${battle.killed}`;
+    }
+    const homeBtn = actionButton('返回首页', () => { closeModal(); resetResultModal(); showPage('home'); });
     dom.resultActions.appendChild(homeBtn);
     if (win) {
       const nextId = battle.levelId + 1;
       dom.resultActions.appendChild(actionButton(nextId <= 2 ? '下一关' : '再战一次', () => {
         closeModal();
+        resetResultModal();
         startBattle(nextId <= 2 ? nextId : battle.levelId);
       }));
     } else {
-      dom.resultActions.appendChild(actionButton('装备升级', () => { closeModal(); showPage('home'); openUpgrade(); }));
+      dom.resultActions.appendChild(actionButton('装备升级', () => { closeModal(); resetResultModal(); showPage('home'); openUpgrade(); }));
     }
     openModal(dom.resultModal);
+  }
+
+  function resetResultModal() {
+    dom.resultTitle.textContent = '';
+    dom.resultDesc.textContent = '';
+    dom.resultStats.textContent = '';
+    dom.resultActions.replaceChildren();
   }
 
   function checkBattleEnd() {
@@ -640,12 +659,12 @@
       dom.fireSkillBtn.classList.add('cooling');
       dom.fireSkillBtn.classList.remove('ready');
       dom.skillCdText.classList.remove('ready');
-      dom.skillCdText.textContent = Math.ceil(battle.skillTimer / 1000);
+      dom.skillCdText.textContent = `${(battle.skillTimer / 1000).toFixed(1)}s`;
     } else {
       dom.fireSkillBtn.classList.remove('cooling');
       dom.fireSkillBtn.classList.add('ready');
       dom.skillCdText.classList.add('ready');
-      dom.skillCdText.textContent = '就绪';
+      dom.skillCdText.textContent = '点击释放';
     }
   }
 
