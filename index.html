@@ -10,23 +10,16 @@
 <body>
   <main id="app" class="app-shell" aria-live="polite">
     <section id="homePage" class="page page-home active">
-      <div class="safe-panel home-card">
-        <p class="eyebrow">竖屏守城 · 自动射击</p>
-        <h1>我的技能没有冷却</h1>
-        <p class="subtitle">守住城墙，打穿怪潮</p>
-        <div class="stats-grid">
-          <div><span>金币</span><strong id="homeGold">0</strong></div>
-          <div><span>战斗力</span><strong id="homePower">310</strong></div>
-          <div><span>武器等级</span><strong id="homeWeapon">Lv.1</strong></div>
-          <div><span>火雨术 CD</span><strong id="homeCooldown">8 秒</strong></div>
-        </div>
-        <div id="toast" class="toast" role="status"></div>
-        <button id="startBtn" class="btn btn-primary">开始挑战</button>
-        <div class="button-row">
-          <button id="upgradeBtn" class="btn btn-secondary">装备升级</button>
-          <button id="levelSelectBtn" class="btn btn-secondary">关卡选择</button>
-        </div>
-        <button id="resetBtn" class="btn btn-ghost">重置存档</button>
+      <div class="home-overlay" aria-label="首页操作热区">
+        <div class="home-metric metric-gold">金币 <strong id="homeGold">0</strong></div>
+        <div class="home-metric metric-power">战斗力 <strong id="homePower">310</strong></div>
+        <div class="home-metric metric-weapon">武器 <strong id="homeWeapon">Lv.1</strong></div>
+        <div class="home-metric metric-cooldown">火雨 CD <strong id="homeCooldown">8 秒</strong></div>
+        <div id="toast" class="toast home-toast" role="status"></div>
+        <button id="startBtn" class="button-hotspot hotspot-start" aria-label="开始挑战"><span>开始挑战</span></button>
+        <button id="upgradeBtn" class="button-hotspot hotspot-upgrade" aria-label="装备升级"><span>装备升级</span></button>
+        <button id="levelSelectBtn" class="button-hotspot hotspot-levels" aria-label="关卡选择"><span>关卡选择</span></button>
+        <button id="resetBtn" class="button-hotspot hotspot-reset" aria-label="重置存档"><span>重置存档</span></button>
       </div>
     </section>
 
@@ -60,7 +53,7 @@
         <div class="lane-guide lane-3"></div>
         <div class="wall-line"><span>城墙防线</span></div>
         <div id="entityLayer" class="entity-layer"></div>
-        <img id="hero" class="hero" src="assets/sprites/hero.png" alt="玩家角色" draggable="false" />
+        <img id="hero" class="hero" src="assets/sprites/demon.png" alt="玩家角色" draggable="false" />
       </div>
 
       <footer class="battle-controls">
