@@ -158,9 +158,14 @@ h2 { font-size: 28px; }
 .hero { position: absolute; z-index: 8; width: 92px; height: 92px; object-fit: contain; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 12px rgba(0,0,0,.45)); transition: filter .1s linear; }
 .monster, .bullet, .coin, .meteor, .explosion, .float-text { position: absolute; z-index: 6; transform: translate(-50%, -50%); pointer-events: none; }
 .monster { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 8px 8px rgba(0,0,0,.45)); }
-.monster.demon { width: 74px; height: 74px; }
-.monster img { width: 100%; height: 100%; object-fit: contain; }
-.monster.lava-slime { filter: drop-shadow(0 8px 8px rgba(0,0,0,.45)) brightness(1.08) saturate(.85); }
+.monster.demon { width: 74px; height: 74px; filter: drop-shadow(0 0 12px rgba(126, 64, 255, .55)) drop-shadow(0 8px 8px rgba(0,0,0,.45)); }
+.monster-sprite { width: 100%; height: 100%; object-fit: contain; animation: monsterBob 1.15s ease-in-out infinite; transform-origin: 50% 72%; }
+.monster.goblin .monster-sprite { animation-duration: .72s; }
+.monster.demon .monster-sprite { animation-name: demonBob; animation-duration: 1.5s; }
+.monster.lava-slime .monster-sprite { filter: brightness(1.08) saturate(.85); }
+.monster.hit .monster-sprite { animation: monsterHit .12s ease-out; }
+.monster.dead { pointer-events: none; }
+.monster.dead .monster-sprite { animation: monsterDead .28s ease-in forwards; }
 .hpbar { position: absolute; left: 50%; top: -8px; width: 42px; height: 4px; overflow: hidden; border-radius: 99px; background: rgba(0,0,0,.55); transform: translateX(-50%); }
 .hpbar i { display: block; height: 100%; background: linear-gradient(90deg, #65ff82, #ffe36a, #ff4d45); }
 .bullet { width: 24px; height: 36px; object-fit: contain; z-index: 7; }
@@ -172,30 +177,55 @@ h2 { font-size: 28px; }
 .float-text.gold { color: var(--gold); }
 .battle-field.shake { animation: shake .24s linear 2; }
 
-.battle-controls { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 86px; padding-bottom: max(3px, env(safe-area-inset-bottom)); }
-.skill-btn { position: relative; width: 78px; height: 78px; padding: 0; border-radius: 23px; background: rgba(255,255,255,.08); box-shadow: 0 0 0 2px rgba(255,213,106,.35), 0 8px 16px rgba(0,0,0,.35); overflow: hidden; }
-.skill-btn img { width: 100%; height: 100%; object-fit: cover; }
-.skill-btn.cooling img { filter: grayscale(.75) brightness(.55); }
-.skill-btn.ready { box-shadow: 0 0 0 3px rgba(255,229,105,.85), 0 0 22px rgba(255,150,40,.7); }
-.skill-cd { position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; font-weight: 1000; color: #fff; text-shadow: 0 2px 5px #000; background: rgba(0,0,0,.18); }
-.skill-cd.ready { font-size: 15px; color: #fff4b4; background: rgba(0,0,0,.02); align-items: end; padding-bottom: 7px; }
+.battle-controls { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 86px; padding-bottom: max(3px, env(safe-area-inset-bottom)); }
+.skill-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 154px;
+  height: 72px;
+  padding: 8px 12px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(78,32,26,.94), rgba(26,12,26,.96));
+  box-shadow: inset 0 0 0 2px rgba(255, 202, 95, .48), 0 8px 16px rgba(0,0,0,.35);
+  overflow: hidden;
+}
+.skill-btn::after { content: ""; position: absolute; inset: 5px; border-radius: 20px; background-image: url("assets/ui/skill-button-fire.png"); background-repeat: no-repeat; background-position: left 9px center; background-size: 50px 50px; opacity: .95; pointer-events: none; }
+.skill-icon { position: relative; z-index: 1; flex: 0 0 48px; width: 48px; height: 48px; border-radius: 16px; background-image: url("assets/ui/skill-button-fire.png"); background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 0 12px rgba(255, 116, 34, .75)); }
+.skill-copy { position: relative; z-index: 1; display: grid; gap: 2px; min-width: 66px; text-align: left; text-shadow: 0 2px 5px #000; }
+.skill-copy strong { color: #ffe8a7; font-size: 16px; line-height: 1; }
+.skill-cd { color: #fff3d4; font-size: 12px; font-style: normal; font-weight: 900; }
+.skill-btn.cooling { filter: brightness(.68) saturate(.75); box-shadow: inset 0 0 0 2px rgba(185, 151, 110, .38), 0 8px 16px rgba(0,0,0,.35); }
+.skill-btn.cooling .skill-icon { filter: grayscale(.5) brightness(.8); }
+.skill-btn.ready { box-shadow: inset 0 0 0 2px rgba(255, 229, 105, .85), 0 0 22px rgba(255,150,40,.8), 0 8px 16px rgba(0,0,0,.35); }
+.skill-cd.ready { color: #fff9bf; }
 
-.modal-layer { position: absolute; inset: 0; z-index: 30; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(7, 5, 12, 0.64); backdrop-filter: blur(5px); }
-.modal-layer.active { display: flex; }
+.modal-overlay { position: fixed; inset: 0; z-index: 999; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(0, 0, 0, .68); backdrop-filter: blur(5px); }
+.modal-overlay.active { display: flex; }
 .modal { position: relative; display: none; width: min(100%, 390px); max-height: 88%; overflow: auto; padding: 22px 16px 18px; border: 1px solid rgba(255, 224, 148, .32); border-radius: 24px; box-shadow: var(--shadow); background-color: rgba(31, 18, 38, .95); background-position: center; background-size: cover; }
 .modal.active { display: block; }
 .panel-upgrade { background-image: linear-gradient(rgba(22,12,28,.72), rgba(22,12,28,.84)), url("assets/ui/upgrade-panel-bg.png"); }
-.panel-result { background-image: linear-gradient(rgba(22,12,28,.78), rgba(22,12,28,.88)), url("assets/ui/result-panel-bg.png"); }
+.panel-result { background-image: linear-gradient(160deg, rgba(31,14,42,.96), rgba(12,8,20,.97)); }
+.result-modal { width: min(86vw, 360px); max-height: 70vh; padding: 22px 18px 18px; border: 1px solid rgba(255, 213, 106, .72); border-radius: 24px; background: linear-gradient(160deg, rgba(42,18,60,.98), rgba(13,8,24,.98)); box-shadow: 0 18px 48px rgba(0,0,0,.62), inset 0 0 0 1px rgba(148, 92, 255, .34); }
+.result-modal h2 { text-align: center; color: var(--gold); font-size: 27px; }
 .modal-close { position: absolute; top: 10px; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.12); font-size: 24px; }
 .upgrade-list, .buff-options { display: grid; gap: 10px; }
 .upgrade-item, .buff-card { padding: 12px; }
 .upgrade-item h3, .buff-card h3 { margin: 0 0 6px; color: var(--gold); }
 .upgrade-item p, .buff-card p { margin: 4px 0 10px; color: #f6e8ce; font-size: 14px; }
 .upgrade-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.result-desc { color: #ffe7ba; line-height: 1.55; }
+.result-desc { display: grid; gap: 7px; color: #ffe7ba; line-height: 1.55; text-align: center; }
+.result-desc strong { color: var(--gold); font-size: 19px; }
+.result-desc span { color: #fff1c8; }
 .result-stats { margin: 14px 0; padding: 12px; color: var(--gold); font-weight: 900; text-align: center; }
 
 @keyframes pulse { 50% { transform: translateX(-50%) scale(1.08); } }
+@keyframes monsterBob { 0%, 100% { transform: translateY(0) rotate(-1deg) scale(1); } 50% { transform: translateY(-4px) rotate(1deg) scale(1.03); } }
+@keyframes demonBob { 0%, 100% { transform: translateY(0) rotate(-.5deg) scale(1); } 50% { transform: translateY(-2px) rotate(.5deg) scale(1.015); } }
+@keyframes monsterHit { 0% { filter: brightness(1); transform: translateX(0) scale(1); } 40% { filter: brightness(1.95) drop-shadow(0 0 10px #ff4b4b); transform: translateX(3px) scale(1.08); } 75% { transform: translateX(-3px) scale(1.05); } 100% { filter: brightness(1); transform: translateX(0) scale(1); } }
+@keyframes monsterDead { 0% { opacity: 1; transform: scale(1) rotate(0); } 100% { opacity: 0; transform: scale(.3) rotate(15deg); } }
 @keyframes floatUp { to { opacity: 0; transform: translate(-50%, -125%); } }
 @keyframes coinPop { to { opacity: 0; transform: translate(-50%, -115%) scale(1.25); } }
 @keyframes boom { to { opacity: 0; transform: translate(-50%, -50%) scale(1.45); } }
@@ -204,6 +234,7 @@ h2 { font-size: 28px; }
 @media (max-width: 380px) {
   h1 { font-size: 32px; }
   .battle-controls { min-height: 86px; }
-  .skill-btn { width: 72px; height: 72px; }
+  .skill-btn { width: 142px; height: 68px; }
+  .skill-icon { width: 44px; height: 44px; flex-basis: 44px; }
   .hero { width: 84px; height: 84px; }
 }
