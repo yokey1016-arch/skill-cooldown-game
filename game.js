@@ -134,6 +134,11 @@
     resultDesc: document.getElementById('resultDesc'),
     resultStats: document.getElementById('resultStats'),
     resultActions: document.getElementById('resultActions'),
+    infoModal: document.getElementById('infoModal'),
+    infoTitle: document.getElementById('infoTitle'),
+    infoSubtitle: document.getElementById('infoSubtitle'),
+    infoContent: document.getElementById('infoContent'),
+    infoActions: document.getElementById('infoActions'),
     battleField: document.getElementById('battleField'),
     entityLayer: document.getElementById('entityLayer'),
     hero: document.getElementById('hero'),
@@ -240,18 +245,23 @@
     showToast.timer = setTimeout(() => { dom.toast.textContent = ''; }, 1800);
   }
 
+  function allModals() {
+    return [dom.upgradeModal, dom.buffModal, dom.resultModal, dom.infoModal];
+  }
+
   function openModal(which) {
+    allModals().forEach(modal => modal.classList.remove('active'));
     dom.modalLayer.classList.add('active');
     dom.modalLayer.setAttribute('aria-hidden', 'false');
-    [dom.upgradeModal, dom.buffModal, dom.resultModal].forEach(modal => modal.classList.remove('active'));
     which.classList.add('active');
   }
 
   function closeModal() {
     dom.modalLayer.classList.remove('active');
     dom.modalLayer.setAttribute('aria-hidden', 'true');
-    [dom.upgradeModal, dom.buffModal, dom.resultModal].forEach(modal => modal.classList.remove('active'));
+    allModals().forEach(modal => modal.classList.remove('active'));
     resetResultModal();
+    resetInfoModal();
   }
 
   function updateHome() {
@@ -698,6 +708,113 @@
     dom.resultActions.replaceChildren();
   }
 
+
+  function resetInfoModal() {
+    dom.infoTitle.textContent = '';
+    dom.infoSubtitle.textContent = '';
+    dom.infoContent.replaceChildren();
+    dom.infoActions.replaceChildren();
+  }
+
+  function addInfoAction(text, onClick, extraClass = 'btn-secondary') {
+    const btn = document.createElement('button');
+    btn.className = `btn ${extraClass}`;
+    btn.textContent = text;
+    btn.addEventListener('click', onClick);
+    dom.infoActions.appendChild(btn);
+    return btn;
+  }
+
+  function openInfoModal(title, subtitle, contentHtml, actions = []) {
+    resetInfoModal();
+    openModal(dom.infoModal);
+    dom.infoTitle.textContent = title;
+    dom.infoSubtitle.textContent = subtitle;
+    dom.infoContent.innerHTML = contentHtml;
+    actions.forEach(action => addInfoAction(action.text, action.onClick, action.className || 'btn-secondary'));
+    if (!actions.length) addInfoAction('关闭', closeModal);
+  }
+
+  function openSkillModal() {
+    openInfoModal('技能系统', '升级技能可以增强火雨术效果。当前版本先开放火雨术。', `
+      <article class="info-card">
+        <div class="info-card-row"><div class="info-icon">🔥</div><div><strong>火雨术</strong><span>当前等级：Lv.${save.cooldownLevel}</span></div><em class="info-tag">已解锁</em></div>
+        <p>当前 CD：${SKILL_COOLDOWNS[save.cooldownLevel] / 1000} 秒</p>
+        <p>当前伤害倍率：${battle.runBuffs?.skillDamageMul || 1}x</p>
+        <p>召唤陨石攻击怪物密集区域，造成范围伤害。</p>
+      </article>`, [
+        { text: '了解技能', onClick: () => showToast('火雨术会优先攻击怪物密集区域') },
+        { text: '关闭', onClick: closeModal },
+      ]);
+  }
+
+  function openTalentModal() {
+    openInfoModal('天赋系统', '天赋将在后续版本开放，当前可预览成长方向。', `
+      ${talentCard('🎯', '战斗专注', '普攻伤害提升')}
+      ${talentCard('🔮', '魔力回流', '火雨术击杀后减少冷却')}
+      ${talentCard('🛡️', '城墙守护', '开局增加城墙血量')}
+    `, [{ text: '关闭', onClick: closeModal }]);
+    dom.infoContent.querySelectorAll('.info-card').forEach(card => card.addEventListener('click', () => showToast('该天赋将在后续版本开放')));
+  }
+
+  function talentCard(icon, name, desc) {
+    return `<button class="info-card clickable"><div class="info-card-row"><div class="info-icon">${icon}</div><div><strong>${name}</strong><span>效果预览：${desc}</span></div><em class="info-tag">未开放</em></div></button>`;
+  }
+
+  function openShopModal() {
+    openInfoModal('神秘商店', '商店功能将在后续版本开放。', `
+      ${shopCard('💎', '魔法水晶', '未来用于技能突破')}
+      ${shopCard('🧰', '城墙修复包', '战斗中恢复城墙')}
+      ${shopCard('🪙', '金币礼包', '未来活动奖励')}
+    `, [{ text: '关闭', onClick: closeModal }]);
+    dom.infoContent.querySelectorAll('.info-card').forEach(card => card.addEventListener('click', () => showToast('商店功能暂未开放')));
+  }
+
+  function shopCard(icon, name, usage) {
+    return `<button class="info-card clickable"><div class="info-card-row"><div class="info-icon">${icon}</div><div><strong>${name}</strong><span>用途：${usage}</span></div><em class="info-tag">未开放</em></div></button>`;
+  }
+
+  function openGuideModal() {
+    openInfoModal('玩法说明', '', `
+      <ol class="guide-list">
+        <li>怪物会从顶部传送门出现，并沿三条路线向下进攻。</li>
+        <li>玩家在底部左右滑动，自动发射魔法弹攻击怪物。</li>
+        <li>点击火雨术可以释放范围攻击。</li>
+        <li>击杀一定数量怪物后，可以选择本局强化。</li>
+        <li>本局强化只在当前战斗有效。</li>
+        <li>通关获得金币。</li>
+        <li>金币可以用于永久升级装备。</li>
+        <li>城墙血量归零则失败。</li>
+      </ol>`, [{ text: '我知道了', onClick: closeModal }]);
+  }
+
+  function openStatusModal() {
+    const cleared = [save.firstClear1, save.firstClear2].filter(Boolean).length;
+    openInfoModal('当前状态', '这里展示当前本地存档数据。', `
+      <div class="status-grid">
+        <div>金币<strong>${save.gold}</strong></div>
+        <div>战斗力<strong>${power()}</strong></div>
+        <div>武器等级<strong>Lv.${save.weaponLevel}</strong></div>
+        <div>攻速等级<strong>Lv.${save.speedLevel}</strong></div>
+        <div>冷却等级<strong>Lv.${save.cooldownLevel}</strong></div>
+        <div>最高通关<strong>${cleared ? `第 ${cleared} 关` : '未通关'}</strong></div>
+      </div>`, [
+        { text: '重置存档', className: 'btn-danger', onClick: resetSaveFromModal },
+        { text: '关闭', onClick: closeModal },
+      ]);
+  }
+
+  function resetSaveFromModal() {
+    if (confirm('确定要清空所有存档吗？金币、装备等级和通关记录都会重置。')) {
+      localStorage.removeItem(SAVE_KEY);
+      save = { ...DEFAULT_SAVE };
+      writeSave();
+      updateHome();
+      closeModal();
+      showToast('存档已重置');
+    }
+  }
+
   function checkBattleEnd() {
     if (battle.wallHp <= 0) finishBattle(false);
     const allSpawned = battle.spawnQueue.length === 0 && battle.spawned >= battle.level.waves.length;
@@ -804,9 +921,11 @@
     document.getElementById('startBtn').addEventListener('click', () => startBattle(1));
     document.getElementById('upgradeBtn').addEventListener('click', openUpgrade);
     document.getElementById('levelSelectBtn').addEventListener('click', () => showPage('levels'));
+    document.getElementById('statusBtn').addEventListener('click', openStatusModal);
+    document.getElementById('guideBtn').addEventListener('click', openGuideModal);
     document.getElementById('navEquipmentBtn').addEventListener('click', openUpgrade);
-    document.getElementById('navSkillBtn').addEventListener('click', () => showToast('技能页暂未开放'));
-    document.getElementById('navTalentBtn').addEventListener('click', () => showToast('天赋页暂未开放'));
+    document.getElementById('navSkillBtn').addEventListener('click', openSkillModal);
+    document.getElementById('navTalentBtn').addEventListener('click', openTalentModal);
     document.getElementById('levelBackBtn').addEventListener('click', () => showPage('home'));
     document.getElementById('battleHomeBtn').addEventListener('click', () => {
       if (confirm('确定返回首页？本局强化和进度会清空。')) showPage('home');
@@ -833,6 +952,9 @@
       showToast('升级成功');
     });
     document.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', closeModal));
+    dom.modalLayer.addEventListener('click', event => {
+      if (event.target === dom.modalLayer && !dom.buffModal.classList.contains('active')) closeModal();
+    });
     dom.fireSkillBtn.addEventListener('click', castFireRain);
 
     dom.hero.src = ASSETS.activeHero;
