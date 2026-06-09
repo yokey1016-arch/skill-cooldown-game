@@ -12,21 +12,23 @@
     <section id="homePage" class="page screen home-screen page-home active">
       <img class="home-bg" src="assets/ui/home-bg.png" alt="" draggable="false" />
       <div class="home-overlay" aria-label="首页操作热区">
-        <div class="home-metric metric-gold" aria-label="金币"><strong id="homeGold">0</strong></div>
-        <div class="home-metric metric-power" aria-label="战斗力"><strong id="homePower">0</strong></div>
-        <div class="home-metric metric-weapon" aria-label="武器等级"><strong id="homeWeapon">Lv.1</strong></div>
-        <div class="home-metric metric-speed" aria-label="攻速等级"><strong id="homeSpeed">Lv.1</strong></div>
-        <div class="home-metric metric-cooldown" aria-label="火雨术冷却"><strong id="homeCooldown">--</strong></div>
-        <div class="home-metric metric-highest" aria-label="最高通关"><strong id="homeHighest">未通关</strong></div>
+        <div class="home-stats" aria-hidden="true">
+          <strong id="homeGold">0</strong>
+          <strong id="homePower">0</strong>
+          <strong id="homeWeapon">Lv.1</strong>
+          <strong id="homeCooldown">--</strong>
+          <strong id="homeHighest">未通关</strong>
+        </div>
         <div id="toast" class="toast home-toast" role="status"></div>
-        <button id="startBtn" class="hotspot hotspot-start" aria-label="开始第1关"></button>
-        <button id="upgradeBtn" class="hotspot hotspot-upgrade" aria-label="装备升级"></button>
-        <button id="levelSelectBtn" class="hotspot hotspot-levels" aria-label="关卡选择"></button>
-        <button id="statusBtn" class="hotspot hotspot-status" aria-label="当前状态"></button>
-        <button id="guideBtn" class="hotspot hotspot-guide" aria-label="玩法说明"></button>
-        <button id="navEquipmentBtn" class="hotspot hotspot-nav-equipment" aria-label="装备"></button>
-        <button id="navSkillBtn" class="hotspot hotspot-nav-skill" aria-label="技能"></button>
-        <button id="navTalentBtn" class="hotspot hotspot-nav-talent" aria-label="天赋"></button>
+        <button id="startBtn" class="home-hotspot hotspot-start" aria-label="开始第1关"></button>
+        <button id="upgradeBtn" class="home-hotspot hotspot-upgrade" aria-label="装备升级"></button>
+        <button id="levelSelectBtn" class="home-hotspot hotspot-levels" aria-label="关卡选择"></button>
+        <button id="guideBtn" class="home-hotspot hotspot-guide" aria-label="玩法说明"></button>
+        <button id="navHomeBtn" class="home-hotspot hotspot-nav-home" aria-label="首页"></button>
+        <button id="navEquipmentBtn" class="home-hotspot hotspot-nav-equipment" aria-label="装备"></button>
+        <button id="navSkillBtn" class="home-hotspot hotspot-nav-skill" aria-label="技能"></button>
+        <button id="navTalentBtn" class="home-hotspot hotspot-nav-talent" aria-label="天赋"></button>
+        <button id="navShopBtn" class="home-hotspot hotspot-nav-shop" aria-label="商店"></button>
       </div>
     </section>
 
