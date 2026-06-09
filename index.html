@@ -57,15 +57,15 @@
       </div>
 
       <footer class="battle-controls">
-        <button id="fireSkillBtn" class="skill-btn" aria-label="释放火雨术">
-          <img src="assets/ui/skill-button-fire.png" alt="火雨术" draggable="false" />
-          <span id="skillCdText" class="skill-cd ready">就绪</span>
+        <button id="fireSkillBtn" class="skill-btn ready" aria-label="释放火雨术">
+          <span class="skill-icon" aria-hidden="true"></span>
+          <span class="skill-copy"><strong>火雨术</strong><em id="skillCdText" class="skill-cd ready">点击释放</em></span>
         </button>
         <button id="battleHomeBtn" class="btn btn-secondary">返回首页</button>
       </footer>
     </section>
 
-    <div id="modalLayer" class="modal-layer" aria-hidden="true">
+    <div id="modalLayer" class="modal-overlay" aria-hidden="true">
       <section id="upgradeModal" class="modal panel-upgrade" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
         <button class="modal-close" data-close-modal>×</button>
         <h2 id="upgradeTitle">装备升级</h2>
@@ -79,7 +79,7 @@
         <div id="buffOptions" class="buff-options"></div>
       </section>
 
-      <section id="resultModal" class="modal panel-result" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <section id="resultModal" class="modal result-modal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
         <h2 id="resultTitle">通关成功</h2>
         <p id="resultDesc" class="result-desc"></p>
         <div id="resultStats" class="result-stats"></div>
