@@ -9,17 +9,20 @@
 </head>
 <body>
   <main id="app" class="app-shell" aria-live="polite">
-    <section id="homePage" class="page page-home active">
+    <section id="homePage" class="page screen home-screen page-home active">
+      <img class="home-bg" src="assets/ui/home-bg.png" alt="" draggable="false" />
       <div class="home-overlay" aria-label="首页操作热区">
-        <div class="home-metric metric-gold">金币 <strong id="homeGold">0</strong></div>
-        <div class="home-metric metric-power">战斗力 <strong id="homePower">310</strong></div>
-        <div class="home-metric metric-weapon">武器 <strong id="homeWeapon">Lv.1</strong></div>
-        <div class="home-metric metric-cooldown">火雨 CD <strong id="homeCooldown">8 秒</strong></div>
+        <div class="home-metric metric-gold" aria-label="金币"><strong id="homeGold">0</strong></div>
+        <div class="home-metric metric-power" aria-label="战斗力"><strong id="homePower">310</strong></div>
+        <div class="home-metric metric-weapon" aria-label="武器等级"><strong id="homeWeapon">Lv.1</strong></div>
+        <div class="home-metric metric-cooldown" aria-label="火雨术冷却"><strong id="homeCooldown">8 秒</strong></div>
         <div id="toast" class="toast home-toast" role="status"></div>
-        <button id="startBtn" class="button-hotspot hotspot-start" aria-label="开始挑战"><span>开始挑战</span></button>
-        <button id="upgradeBtn" class="button-hotspot hotspot-upgrade" aria-label="装备升级"><span>装备升级</span></button>
-        <button id="levelSelectBtn" class="button-hotspot hotspot-levels" aria-label="关卡选择"><span>关卡选择</span></button>
-        <button id="resetBtn" class="button-hotspot hotspot-reset" aria-label="重置存档"><span>重置存档</span></button>
+        <button id="startBtn" class="hotspot hotspot-start" aria-label="开始第1关"></button>
+        <button id="upgradeBtn" class="hotspot hotspot-upgrade" aria-label="装备升级"></button>
+        <button id="levelSelectBtn" class="hotspot hotspot-levels" aria-label="关卡选择"></button>
+        <button id="navEquipmentBtn" class="hotspot hotspot-nav-equipment" aria-label="装备"></button>
+        <button id="navSkillBtn" class="hotspot hotspot-nav-skill" aria-label="技能"></button>
+        <button id="navTalentBtn" class="hotspot hotspot-nav-talent" aria-label="天赋"></button>
       </div>
     </section>
 
