@@ -6,23 +6,20 @@
   'use strict';
 
   const ASSETS = {
+    skillButton: 'assets/ui/skill-button-fire.png',
     hero: 'assets/sprites/hero.png',
     heroFallback: 'assets/sprites/demon.png',
     // hero.png 当前检测为不透明白底素材；运行时先使用透明 demon.png 占位，保留正式路径方便后续替换。
     activeHero: 'assets/sprites/demon.png',
-    sprites: {
-      slime: 'assets/sprites/slime.png',
-      // lava-slime.png 当前橙红火焰占比过高，怪物本体禁用火焰，临时复用透明 slime 图。
-      'lava-slime': 'assets/sprites/slime.png',
-      goblin: 'assets/sprites/goblin.png',
-      demon: 'assets/sprites/demon.png',
-    },
-    fx: {
-      bullet: 'assets/fx/bullet.png',
-      coin: 'assets/fx/coin-drop.png',
-      meteor: 'assets/fx/meteor.png',
-      explosion: 'assets/fx/explosion.png',
-    },
+    slime: 'assets/sprites/slime.png',
+    lavaSlime: 'assets/sprites/lava-slime.png',
+    goblin: 'assets/sprites/goblin.png',
+    demon: 'assets/sprites/demon.png',
+    fallbackMonster: 'assets/sprites/slime.png',
+    meteor: 'assets/fx/meteor.png',
+    explosion: 'assets/fx/explosion.png',
+    bullet: 'assets/fx/bullet.png',
+    coin: 'assets/fx/coin-drop.png',
   };
 
   const SAVE_KEY = 'skillCooldownGameSaveV1';
@@ -71,10 +68,10 @@
   };
 
   const MONSTERS = {
-    slime: { name: '普通史莱姆', hp: 24, speed: 30, damage: 6, gold: 6, className: 'slime' },
-    'lava-slime': { name: '厚皮史莱姆', hp: 38, speed: 26, damage: 8, gold: 11, className: 'lava-slime' },
-    goblin: { name: '哥布林', hp: 26, speed: 48, damage: 7, gold: 8, className: 'goblin' },
-    demon: { name: '恶魔精英', hp: 95, speed: 24, damage: 18, gold: 22, className: 'demon' },
+    slime: { name: '普通史莱姆', hp: 24, speed: 30, damage: 6, gold: 6, className: 'slime', assetKey: 'slime' },
+    'lava-slime': { name: '厚皮史莱姆', hp: 38, speed: 26, damage: 8, gold: 11, className: 'lava-slime', assetKey: 'slime' },
+    goblin: { name: '哥布林', hp: 26, speed: 48, damage: 7, gold: 8, className: 'goblin', assetKey: 'goblin' },
+    demon: { name: '恶魔精英', hp: 95, speed: 24, damage: 18, gold: 22, className: 'demon', assetKey: 'demon' },
   };
 
   const UPGRADES = {
@@ -391,15 +388,34 @@
     checkBattleEnd();
   }
 
+  function monsterAsset(cfg) {
+    return ASSETS[cfg.assetKey] || ASSETS.fallbackMonster;
+  }
+
+  function bindMonsterImageFallback(sprite, wrapper) {
+    sprite.dataset.fallbackStep = '0';
+    sprite.addEventListener('error', () => {
+      if (sprite.dataset.fallbackStep === '0') {
+        sprite.dataset.fallbackStep = '1';
+        sprite.src = ASSETS.fallbackMonster;
+        return;
+      }
+      wrapper.classList.add('fallback-monster');
+      sprite.hidden = true;
+    });
+  }
+
   function spawnMonster() {
     const type = battle.spawnQueue.shift();
     const cfg = MONSTERS[type];
     const laneIndex = Math.floor(Math.random() * laneRatios.length);
     const x = battle.width * laneRatios[laneIndex];
-    const y = battle.height * 0.08;
+    const y = battle.height * 0.13;
     const el = document.createElement('div');
     el.className = `monster ${cfg.className}`;
-    el.innerHTML = `<img class="monster-sprite" src="${ASSETS.sprites[type]}" alt="${cfg.name}" draggable="false"><span class="hpbar"><i style="width:100%"></i></span>`;
+    el.innerHTML = `<img class="monster-sprite" src="${monsterAsset(cfg)}" alt="${cfg.name}" draggable="false"><span class="monster-hp hpbar"><i style="width:100%"></i></span>`;
+    const sprite = el.querySelector('.monster-sprite');
+    bindMonsterImageFallback(sprite, el);
     dom.entityLayer.appendChild(el);
     battle.monsters.push({
       id: uid++, type, cfg, laneIndex, x, y,
@@ -434,7 +450,7 @@
     if (!target) return;
     const el = document.createElement('img');
     el.className = 'bullet';
-    el.src = ASSETS.fx.bullet;
+    el.src = ASSETS.bullet;
     el.alt = '子弹';
     dom.entityLayer.appendChild(el);
     const bullet = {
@@ -498,7 +514,7 @@
       const endY = clamp(cluster.y + (Math.random() - 0.5) * 110, 92, battle.height * 0.76);
       const el = document.createElement('img');
       el.className = 'meteor';
-      el.src = ASSETS.fx.meteor;
+      el.src = ASSETS.meteor;
       el.alt = '火雨术陨石';
       dom.entityLayer.appendChild(el);
       battle.effects.push({ type: 'meteor', el, x: endX - 80, y: -70 - i * 28, endX, endY, t: 0, duration: 0.42 + i * 0.06, damage: 45 * battle.runBuffs.skillDamageMul });
@@ -534,7 +550,7 @@
   function explodeAt(x, y, radius, damage, big) {
     const el = document.createElement('img');
     el.className = 'explosion';
-    el.src = ASSETS.fx.explosion;
+    el.src = ASSETS.explosion;
     el.alt = '爆炸';
     dom.entityLayer.appendChild(el);
     position(el, x, y);
@@ -694,7 +710,7 @@
   function showCoin(x, y, gold) {
     const coin = document.createElement('img');
     coin.className = 'coin';
-    coin.src = ASSETS.fx.coin;
+    coin.src = ASSETS.coin;
     coin.alt = '金币掉落';
     dom.entityLayer.appendChild(coin);
     position(coin, x, y);
@@ -825,8 +841,17 @@
     window.addEventListener('resize', () => { setViewportHeight(); resizeBattle(); });
   }
 
+  function initAssetCssVars() {
+    const root = document.documentElement;
+    root.style.setProperty('--skill-icon-url', `url("${ASSETS.skillButton}")`);
+    const probe = new Image();
+    probe.onerror = () => root.style.setProperty('--skill-icon-url', `url("${ASSETS.meteor}")`);
+    probe.src = ASSETS.skillButton;
+  }
+
   function boot() {
     setViewportHeight();
+    initAssetCssVars();
     resetRunBuffs();
     bindEvents();
     updateHome();
