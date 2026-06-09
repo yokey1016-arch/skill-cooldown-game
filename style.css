@@ -48,44 +48,58 @@ img { max-width: 100%; pointer-events: none; }
 }
 .page.active { display: flex; }
 
-.page-home {
-  display: none;
-  position: absolute;
+
+.home-screen {
+  position: relative;
+  width: min(100vw, 430px);
+  height: 100dvh;
+  max-height: 932px;
+  margin: 0 auto;
+  overflow: hidden;
   padding: 0;
-  background-image: url("assets/ui/home-bg.png");
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background: #07020f;
 }
+.page-home { display: none; }
 .page-home.active { display: block; }
+.home-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
 .page-levels { align-items: center; background-image: linear-gradient(180deg, rgba(13, 12, 28, 0.12), rgba(13, 12, 28, 0.32)), url("assets/ui/level-select-bg.png"); }
 .page-battle { flex-direction: column; gap: 6px; padding: max(6px, env(safe-area-inset-top)) 6px max(8px, env(safe-area-inset-bottom)); background: #1a1628; }
 
-.home-overlay { position: absolute; inset: 0; }
+.home-overlay { position: absolute; inset: 0; z-index: 2; }
 .home-metric {
   position: absolute;
-  padding: 3px 7px;
+  z-index: 11;
+  padding: 2px 6px;
   border-radius: 999px;
-  color: rgba(255, 247, 223, 0.92);
-  background: rgba(30, 16, 34, 0.30);
-  font-size: 11px;
+  color: rgba(255, 247, 223, 0.88);
+  background: rgba(30, 16, 34, 0.22);
+  font-size: 10px;
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0,0,0,.65);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(1.5px);
+  pointer-events: none;
 }
-.home-metric strong { color: var(--gold); font-size: 12px; }
+.home-metric strong { color: var(--gold); font-size: 11px; }
 .metric-gold { top: 15.2%; left: 7%; }
 .metric-power { top: 15.2%; right: 7%; }
 .metric-weapon { top: 20.2%; left: 7%; }
 .metric-cooldown { top: 20.2%; right: 7%; }
-.home-toast { position: absolute; left: 50%; bottom: 25%; min-width: 180px; transform: translateX(-50%); text-align: center; }
-.button-hotspot { position: absolute; background: transparent; border: 0; box-shadow: none; border-radius: 999px; }
-.button-hotspot span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.button-hotspot:active { background: rgba(255, 221, 106, 0.10); }
-.hotspot-start { left: 17%; right: 17%; bottom: 18.2%; height: 8.2%; }
-.hotspot-upgrade { left: 10%; width: 38%; bottom: 8.9%; height: 7%; }
-.hotspot-levels { right: 10%; width: 38%; bottom: 8.9%; height: 7%; }
-.hotspot-reset { right: 5%; bottom: 2.2%; width: 26%; height: 4.4%; }
+.home-toast { position: absolute; z-index: 12; left: 50%; bottom: 18%; min-width: 180px; transform: translateX(-50%); text-align: center; }
+.hotspot { position: absolute; z-index: 10; background: transparent; border: none; padding: 0; box-shadow: none; border-radius: 14px; }
+.hotspot.debug { background: rgba(255, 0, 0, 0.25); outline: 1px solid rgba(255,255,255,.5); }
+.hotspot-start { left: 4%; right: 4%; top: 57.5%; height: 9.5%; }
+.hotspot-upgrade { left: 4%; width: 43%; top: 69.5%; height: 7%; }
+.hotspot-levels { right: 4%; width: 43%; top: 69.5%; height: 7%; }
+.hotspot-nav-equipment { left: 0%; width: 33.33%; bottom: 0%; height: 8.5%; }
+.hotspot-nav-skill { left: 33.33%; width: 33.33%; bottom: 0%; height: 8.5%; }
+.hotspot-nav-talent { left: 66.66%; width: 33.33%; bottom: 0%; height: 8.5%; }
 
 .safe-panel {
   width: 100%;
