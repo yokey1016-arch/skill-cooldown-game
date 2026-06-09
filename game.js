@@ -280,21 +280,31 @@
   }
 
   function renderUpgrades() {
+    const icons = { weapon: '⚔️', speed: '⚡', cooldown: '🔥' };
+    const nextHints = {
+      weapon: '下一级：攻击力提升',
+      speed: '下一级：攻击间隔缩短',
+      cooldown: '下一级：火雨术冷却缩短',
+    };
     dom.upgradeList.innerHTML = '';
     Object.entries(UPGRADES).forEach(([id, item]) => {
       const level = save[item.saveKey];
       const maxed = level >= item.max;
       const cost = item.costs[level];
-      const el = document.createElement('div');
-      el.className = 'upgrade-item';
-      el.innerHTML = `
-        <h3>${item.label} Lv.${level}${maxed ? '（已满级）' : ` → Lv.${level + 1}`}</h3>
-        <p>${item.desc}</p>
-        <div class="upgrade-meta">
-          <strong>${maxed ? '最高等级' : `消耗 ${cost} 金币`}</strong>
-          <button class="btn btn-secondary" data-upgrade="${id}" ${maxed ? 'disabled' : ''}>${maxed ? '已满级' : '升级'}</button>
-        </div>`;
-      dom.upgradeList.appendChild(el);
+      const affordable = maxed || save.gold >= cost;
+      const card = document.createElement('button');
+      card.className = `upgrade-card ${maxed ? 'is-maxed' : ''}`;
+      card.dataset.upgrade = id;
+      card.disabled = maxed || !affordable;
+      card.innerHTML = `
+        <div class="upgrade-icon">${icons[id]}</div>
+        <div class="upgrade-info">
+          <strong>${item.label} Lv.${level}</strong>
+          <span>${item.desc}</span>
+          <em>${maxed ? '已达到最高等级' : nextHints[id]}</em>
+        </div>
+        <div class="upgrade-cost ${affordable ? '' : 'is-poor'}">${maxed ? '已满级' : `金币 ${cost}`}</div>`;
+      dom.upgradeList.appendChild(card);
     });
   }
 
@@ -415,7 +425,7 @@
     const y = battle.height * 0.13;
     const el = document.createElement('div');
     el.className = `monster ${cfg.className}`;
-    el.innerHTML = `<img class="monster-sprite" src="${monsterAsset(cfg)}" alt="${cfg.name}" draggable="false"><span class="monster-hp hpbar"><i style="width:100%"></i></span>`;
+    el.innerHTML = `<div class="monster-body"><img class="monster-sprite" src="${monsterAsset(cfg)}" alt="${cfg.name}" draggable="false"></div><span class="monster-hp hpbar"><i style="width:100%"></i></span>`;
     const sprite = el.querySelector('.monster-sprite');
     bindMonsterImageFallback(sprite, el);
     dom.entityLayer.appendChild(el);
@@ -450,14 +460,25 @@
   function shootBullet() {
     const target = selectTarget();
     if (!target) return;
-    const el = document.createElement('img');
-    el.className = 'bullet';
-    el.src = ASSETS.bullet;
-    el.alt = '子弹';
+    const el = document.createElement('div');
+    el.className = 'bullet magic-bullet';
+    el.innerHTML = '<span class="bullet-trail"></span><span class="bullet-core"></span>';
     dom.entityLayer.appendChild(el);
     const bullet = {
-      id: uid++, x: battle.heroX, y: battle.heroY - 48, targetId: target.id,
-      speed: 380, damage: baseDamage(), pierceLeft: battle.runBuffs.pierce, hitIds: new Set(), el,
+      id: uid++,
+      startX: battle.heroX + 10,
+      startY: battle.heroY - 48,
+      x: battle.heroX + 10,
+      y: battle.heroY - 48,
+      targetId: target.id,
+      targetX: target.x,
+      targetY: target.y,
+      speed: 430,
+      progress: 0,
+      damage: baseDamage(),
+      pierceLeft: battle.runBuffs.pierce,
+      hitIds: new Set(),
+      el,
     };
     battle.bullets.push(bullet);
     position(el, bullet.x, bullet.y);
@@ -477,19 +498,27 @@
   function updateBullets(dt) {
     for (const bullet of [...battle.bullets]) {
       const target = battle.monsters.find(m => m.id === bullet.targetId) || selectTarget();
-      if (target) bullet.targetId = target.id;
-      const tx = target ? target.x : bullet.x;
-      const ty = target ? target.y : -40;
-      const dx = tx - bullet.x;
-      const dy = ty - bullet.y;
+      if (target) {
+        bullet.targetId = target.id;
+        bullet.targetX = target.x;
+        bullet.targetY = target.y - 8;
+      } else {
+        bullet.targetY = -40;
+      }
+      const dx = bullet.targetX - bullet.x;
+      const dy = bullet.targetY - bullet.y;
       const len = Math.hypot(dx, dy) || 1;
-      bullet.x += (dx / len) * bullet.speed * dt;
-      bullet.y += (dy / len) * bullet.speed * dt;
+      const curve = Math.sin(bullet.progress * Math.PI) * 38;
+      bullet.x += (dx / len) * bullet.speed * dt + (bullet.targetX - bullet.x) * 0.055 * dt * 60;
+      bullet.y += (dy / len) * bullet.speed * dt - curve * dt;
+      bullet.progress += dt * 2.4;
+      bullet.el.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(dy, dx) + Math.PI / 2}rad)`;
       position(bullet.el, bullet.x, bullet.y);
 
-      const hit = battle.monsters.find(m => !bullet.hitIds.has(m.id) && distance(m, bullet) < 34);
+      const hit = battle.monsters.find(m => !bullet.hitIds.has(m.id) && distance(m, bullet) < 36);
       if (hit) {
         bullet.hitIds.add(hit.id);
+        showHitSpark(hit.x, hit.y - 4, false);
         damageMonster(hit, bullet.damage, false);
         if (battle.runBuffs.blast) explodeAt(hit.x, hit.y, 46, bullet.damage * 0.45, false);
         if (bullet.pierceLeft > 0) {
@@ -498,7 +527,7 @@
         } else {
           removeBullet(bullet);
         }
-      } else if (bullet.y < -50 || bullet.x < -40 || bullet.x > battle.width + 40) {
+      } else if (bullet.y < -50 || bullet.x < -40 || bullet.x > battle.width + 40 || bullet.progress > 4) {
         removeBullet(bullet);
       }
     }
@@ -511,20 +540,21 @@
     updateSkillButton();
     dom.battleField.classList.add('shake');
     setTimeout(() => dom.battleField.classList.remove('shake'), 520);
-    for (let i = 0; i < 5; i += 1) {
-      const endX = clamp(cluster.x + (Math.random() - 0.5) * 120, 34, battle.width - 34);
-      const endY = clamp(cluster.y + (Math.random() - 0.5) * 110, 92, battle.height * 0.76);
+    const count = 5 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i += 1) {
+      const endX = clamp(cluster.x + (Math.random() - 0.5) * 130, 34, battle.width - 34);
+      const endY = clamp(cluster.y + (Math.random() - 0.5) * 120, 92, battle.height * 0.76);
       const el = document.createElement('img');
       el.className = 'meteor';
       el.src = ASSETS.meteor;
       el.alt = '火雨术陨石';
       dom.entityLayer.appendChild(el);
-      battle.effects.push({ type: 'meteor', el, x: endX - 80, y: -70 - i * 28, endX, endY, t: 0, duration: 0.42 + i * 0.06, damage: 45 * battle.runBuffs.skillDamageMul });
+      battle.effects.push({ type: 'meteor', el, x: clamp(endX - 90 + Math.random() * 80, -30, battle.width + 30), y: -90 - i * 34, endX, endY, t: 0, duration: 0.34 + i * 0.055, damage: 45 * battle.runBuffs.skillDamageMul });
     }
   }
 
   function densePoint() {
-    if (!battle.monsters.length) return { x: battle.width / 2, y: battle.height * 0.35 };
+    if (!battle.monsters.length) return { x: battle.width * laneRatios[Math.floor(Math.random() * laneRatios.length)], y: battle.height * (0.26 + Math.random() * 0.24) };
     return [...battle.monsters].sort((a, b) => nearbyCount(b) - nearbyCount(a))[0];
   }
 
@@ -543,6 +573,8 @@
         if (p >= 1) {
           fx.el.remove();
           battle.effects = battle.effects.filter(item => item !== fx);
+          dom.battleField.classList.add('shake');
+          setTimeout(() => dom.battleField.classList.remove('shake'), 180);
           explodeAt(fx.endX, fx.endY, 92, fx.damage, true);
         }
       }
@@ -557,17 +589,26 @@
     dom.entityLayer.appendChild(el);
     position(el, x, y);
     setTimeout(() => el.remove(), 460);
+    if (big) showHitSpark(x, y, true);
     battle.monsters.filter(m => distance(m, { x, y }) <= radius).forEach(m => damageMonster(m, damage, big));
+  }
+
+  function showHitSpark(x, y, big) {
+    const spark = document.createElement('span');
+    spark.className = `hit-spark ${big ? 'big' : ''}`;
+    dom.entityLayer.appendChild(spark);
+    position(spark, x, y);
+    setTimeout(() => spark.remove(), big ? 360 : 220);
   }
 
   function damageMonster(monster, damage, big) {
     if (!battle.monsters.includes(monster) || monster.dead) return;
     const finalDamage = Math.ceil(damage);
     monster.hp -= finalDamage;
-    monster.el.classList.add('hit');
+    monster.el.classList.add('is-hit');
     clearTimeout(monster.hitTimer);
-    monster.hitTimer = setTimeout(() => monster.el.classList.remove('hit'), 120);
-    showFloat(monster.x, monster.y - 26, `-${finalDamage}`, big ? 'big' : '');
+    monster.hitTimer = setTimeout(() => monster.el.classList.remove('is-hit'), 120);
+    showFloat(monster.x + (Math.random() - 0.5) * 22, monster.y - 26 - Math.random() * 14, `-${finalDamage}`, big ? 'big' : '');
     if (monster.hp <= 0) killMonster(monster);
   }
 
@@ -575,13 +616,13 @@
     if (monster.dead) return;
     monster.dead = true;
     battle.monsters = battle.monsters.filter(item => item !== monster);
-    monster.el.classList.remove('hit');
-    monster.el.classList.add('dead');
+    monster.el.classList.remove('is-hit');
+    monster.el.classList.add('is-dead');
     battle.killed += 1;
     const gold = Math.ceil(monster.cfg.gold * battle.runBuffs.goldMul);
     battle.earnedGold += gold;
     showCoin(monster.x, monster.y, gold);
-    setTimeout(() => monster.el.remove(), 300);
+    setTimeout(() => monster.el.remove(), 280);
     if (battle.pendingBuffKills[0] && battle.killed >= battle.pendingBuffKills[0]) {
       battle.pendingBuffKills.shift();
       openBuffChoice();
@@ -840,10 +881,10 @@
 
   function initAssetCssVars() {
     const root = document.documentElement;
-    root.style.setProperty('--skill-icon-url', `url("${ASSETS.skillButton}")`);
+    root.style.setProperty('--skill-icon-url', `url("${ASSETS.meteor}")`);
     const probe = new Image();
-    probe.onerror = () => root.style.setProperty('--skill-icon-url', `url("${ASSETS.meteor}")`);
-    probe.src = ASSETS.skillButton;
+    probe.onerror = () => root.style.setProperty('--skill-icon-url', `url("${ASSETS.explosion}")`);
+    probe.src = ASSETS.meteor;
   }
 
   function applyHotspotDebug() {
