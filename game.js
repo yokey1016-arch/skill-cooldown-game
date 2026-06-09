@@ -134,7 +134,6 @@
     homeGold: document.getElementById('homeGold'),
     homePower: document.getElementById('homePower'),
     homeWeapon: document.getElementById('homeWeapon'),
-    homeSpeed: document.getElementById('homeSpeed'),
     homeCooldown: document.getElementById('homeCooldown'),
     homeHighest: document.getElementById('homeHighest'),
     toast: document.getElementById('toast'),
@@ -254,6 +253,10 @@
     return base / battle.runBuffs.speedMul;
   }
 
+  function getFireRainCd() {
+    return SKILL_COOLDOWNS[save.cooldownLevel] / 1000;
+  }
+
   function currentSkillCooldown() {
     return SKILL_COOLDOWNS[save.cooldownLevel] * battle.runBuffs.skillCdMul;
   }
@@ -317,17 +320,17 @@
     resetInfoModal();
   }
 
-  function updateHome() {
+  function renderHomeStats() {
+    // 首页背景图已包含完整视觉；这些真实数值仅保存在隐藏节点中，避免错位覆盖。
     dom.homeGold.textContent = save.gold;
     dom.homePower.textContent = getPower();
-    dom.homeWeapon.textContent = `武器 Lv.${save.weaponLevel}`;
-    dom.homeSpeed.textContent = `攻速 Lv.${save.speedLevel}`;
-    dom.homeCooldown.textContent = `冷却 ${SKILL_COOLDOWNS[save.cooldownLevel] / 1000} 秒`;
-    dom.homeHighest.textContent = save.highestLevel > 0 ? `最高 第 ${save.highestLevel} 关` : '最高 未通关';
+    dom.homeWeapon.textContent = `Lv.${save.weaponLevel}`;
+    dom.homeCooldown.textContent = `${getFireRainCd()} 秒`;
+    dom.homeHighest.textContent = save.highestLevel > 0 ? `第 ${save.highestLevel} 关` : '未通关';
   }
 
 
-  const renderHome = updateHome;
+  const renderHome = renderHomeStats;
   const renderLevelSelect = renderLevels;
   const renderUpgradeModal = renderUpgrades;
   const renderBattleHud = updateBattleHud;
@@ -987,6 +990,18 @@
     openModal(dom.upgradeModal);
   }
 
+  function openUpgradeModal() {
+    openUpgrade();
+  }
+
+  function showLevelSelect() {
+    showPage('levels');
+  }
+
+  function startLevel(levelId) {
+    startBattle(levelId);
+  }
+
   function actionButton(text, fn) {
     const btn = document.createElement('button');
     btn.className = 'btn btn-secondary';
@@ -1046,14 +1061,15 @@
   }
 
   function bindEvents() {
-    document.getElementById('startBtn').addEventListener('click', () => startBattle(1));
-    document.getElementById('upgradeBtn').addEventListener('click', openUpgrade);
-    document.getElementById('levelSelectBtn').addEventListener('click', () => showPage('levels'));
-    document.getElementById('statusBtn').addEventListener('click', openStatusModal);
+    document.getElementById('startBtn').addEventListener('click', () => startLevel(1));
+    document.getElementById('upgradeBtn').addEventListener('click', openUpgradeModal);
+    document.getElementById('levelSelectBtn').addEventListener('click', showLevelSelect);
     document.getElementById('guideBtn').addEventListener('click', openGuideModal);
-    document.getElementById('navEquipmentBtn').addEventListener('click', openUpgrade);
+    document.getElementById('navHomeBtn').addEventListener('click', () => { closeModal(); renderHome(); });
+    document.getElementById('navEquipmentBtn').addEventListener('click', openUpgradeModal);
     document.getElementById('navSkillBtn').addEventListener('click', openSkillModal);
     document.getElementById('navTalentBtn').addEventListener('click', openTalentModal);
+    document.getElementById('navShopBtn').addEventListener('click', openShopModal);
     document.getElementById('levelBackBtn').addEventListener('click', () => showPage('home'));
     document.getElementById('battleHomeBtn').addEventListener('click', () => {
       if (confirm('确定返回首页？本局强化和进度会清空。')) showPage('home');
@@ -1143,7 +1159,7 @@
   }
 
   function applyHotspotDebug() {
-    document.querySelectorAll('.hotspot').forEach(btn => btn.classList.toggle('debug', DEBUG_HOTSPOTS));
+    document.querySelectorAll('.home-hotspot').forEach(btn => btn.classList.toggle('debug', DEBUG_HOTSPOTS));
   }
 
   function boot() {
