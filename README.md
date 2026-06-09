@@ -122,3 +122,4 @@ assets/ui/battle-bg-clean.png
 - 增加更多本局强化，例如连锁闪电、冰冻、毒雾。
 - 增加音效和背景音乐开关。
 - 增加更完整的新手引导。
+Updated Pages deployment.
