@@ -8,9 +8,12 @@
   const ASSETS = {
     hero: 'assets/sprites/hero.png',
     heroFallback: 'assets/sprites/demon.png',
+    // hero.png 当前检测为不透明白底素材；运行时先使用透明 demon.png 占位，保留正式路径方便后续替换。
+    activeHero: 'assets/sprites/demon.png',
     sprites: {
       slime: 'assets/sprites/slime.png',
-      'lava-slime': 'assets/sprites/lava-slime.png',
+      // lava-slime.png 当前橙红火焰占比过高，怪物本体禁用火焰，临时复用透明 slime 图。
+      'lava-slime': 'assets/sprites/slime.png',
       goblin: 'assets/sprites/goblin.png',
       demon: 'assets/sprites/demon.png',
     },
@@ -69,7 +72,7 @@
 
   const MONSTERS = {
     slime: { name: '普通史莱姆', hp: 24, speed: 30, damage: 6, gold: 6, className: 'slime' },
-    'lava-slime': { name: '熔岩史莱姆', hp: 38, speed: 26, damage: 8, gold: 11, className: 'lava-slime' },
+    'lava-slime': { name: '厚皮史莱姆', hp: 38, speed: 26, damage: 8, gold: 11, className: 'lava-slime' },
     goblin: { name: '哥布林', hp: 26, speed: 48, damage: 7, gold: 8, className: 'goblin' },
     demon: { name: '恶魔精英', hp: 95, speed: 24, damage: 18, gold: 22, className: 'demon' },
   };
@@ -325,7 +328,7 @@
     resizeBattle();
     battle.heroX = battle.width / 2;
     battle.targetHeroX = battle.heroX;
-    battle.heroY = battle.height * 0.88;
+    battle.heroY = battle.height * 0.84;
     updateHero(true);
     updateBattleHud();
     updateSkillButton();
@@ -349,7 +352,7 @@
     const rect = dom.battleField.getBoundingClientRect();
     battle.width = rect.width;
     battle.height = rect.height;
-    battle.heroY = battle.height * 0.88;
+    battle.heroY = battle.height * 0.84;
     battle.targetHeroX = clamp(battle.targetHeroX || battle.width / 2, 36, battle.width - 36);
     battle.heroX = clamp(battle.heroX || battle.width / 2, 36, battle.width - 36);
     updateHero(true);
@@ -407,7 +410,7 @@
   }
 
   function updateMonsters(dt) {
-    const wallY = battle.height * 0.80;
+    const wallY = battle.height * 0.78;
     for (const monster of [...battle.monsters]) {
       if (monster.y < wallY) {
         monster.y += monster.cfg.speed * dt;
@@ -434,7 +437,7 @@
     el.alt = '子弹';
     dom.entityLayer.appendChild(el);
     const bullet = {
-      id: uid++, x: battle.heroX, y: battle.heroY - 34, targetId: target.id,
+      id: uid++, x: battle.heroX, y: battle.heroY - 48, targetId: target.id,
       speed: 380, damage: baseDamage(), pierceLeft: battle.runBuffs.pierce, hitIds: new Set(), el,
     };
     battle.bullets.push(bullet);
@@ -759,6 +762,7 @@
     document.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', closeModal));
     dom.fireSkillBtn.addEventListener('click', castFireRain);
 
+    dom.hero.src = ASSETS.activeHero;
     dom.hero.addEventListener('error', () => {
       if (!dom.hero.src.endsWith('demon.png')) dom.hero.src = ASSETS.heroFallback;
     });
