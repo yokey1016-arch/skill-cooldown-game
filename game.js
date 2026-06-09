@@ -1,6 +1,6 @@
 /*
  * 我的技能没有冷却 - 纯前端竖屏守城小游戏
- * 所有配置集中在本文件，后续扩展第 3 关 Boss 时优先扩展 LEVELS、MONSTERS 和 battle 状态。
+ * 所有配置集中在本文件，后续扩展更多关卡或 Boss 时优先扩展 LEVELS、MONSTERS 和 battle 状态。
  */
 (() => {
   'use strict';
@@ -25,20 +25,13 @@
   };
 
   const SAVE_KEY = 'skillCooldownGameSaveV1';
-  const DEFAULT_SAVE = {
+  const defaultSave = {
     gold: 0,
-    highestLevel: 2,
+    highestLevel: 0,
     weaponLevel: 1,
     speedLevel: 1,
     cooldownLevel: 1,
-    firstClear1: false,
-    firstClear2: false,
-    firstClear3: false,
-    firstClear4: false,
-    firstClear5: false,
-    firstClear6: false,
-    firstClear7: false,
-    firstClear8: false,
+    firstClears: {},
   };
 
   function makeWave(type, count, lanes = [0, 1, 2]) {
@@ -129,7 +122,7 @@
     { id: 'blast', name: '爆裂魔弹', desc: '本局普攻命中产生小范围爆炸', apply: () => { battle.runBuffs.blast = true; } },
     { id: 'greed', name: '金币贪婪', desc: '本局怪物金币 +50%', apply: () => { battle.runBuffs.goldMul *= 1.5; } },
     { id: 'meteor', name: '火雨强化', desc: '本局火雨术伤害 +40%', apply: () => { battle.runBuffs.skillDamageMul *= 1.4; } },
-    { id: 'repair', name: '城墙修复', desc: '立即恢复城墙 20 点血量', apply: () => { battle.wallHp = Math.min(battle.maxWallHp, battle.wallHp + 20); updateBattleHud(); } },
+    { id: 'repair', name: '城墙修复', desc: '立即恢复城墙 20 点血量', apply: () => { battle.wallHp = Math.min(battle.maxWallHp, battle.wallHp + 20); renderBattleHud(); } },
   ];
 
   const dom = {
@@ -141,7 +134,9 @@
     homeGold: document.getElementById('homeGold'),
     homePower: document.getElementById('homePower'),
     homeWeapon: document.getElementById('homeWeapon'),
+    homeSpeed: document.getElementById('homeSpeed'),
     homeCooldown: document.getElementById('homeCooldown'),
+    homeHighest: document.getElementById('homeHighest'),
     toast: document.getElementById('toast'),
     levelList: document.getElementById('levelList'),
     modalLayer: document.getElementById('modalLayer'),
@@ -204,6 +199,7 @@
     earnedGold: 0,
     runBuffs: null,
     pendingBuffKills: [],
+    totalMonsters: 0,
     boss: null,
     bossBuffGiven: false,
     lastTime: 0,
@@ -212,10 +208,20 @@
   function loadSave() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
-      return raw ? { ...DEFAULT_SAVE, ...JSON.parse(raw) } : { ...DEFAULT_SAVE };
+      const loadedSave = raw ? JSON.parse(raw) : {};
+      const migratedFirstClears = { ...(loadedSave.firstClears || {}) };
+      for (let id = 1; id <= 8; id += 1) {
+        if (loadedSave[`firstClear${id}`] !== undefined) migratedFirstClears[String(id)] = Boolean(loadedSave[`firstClear${id}`]);
+      }
+      return {
+        ...defaultSave,
+        ...loadedSave,
+        highestLevel: Number(loadedSave.highestLevel || defaultSave.highestLevel),
+        firstClears: { ...defaultSave.firstClears, ...migratedFirstClears },
+      };
     } catch (err) {
       console.warn('读取存档失败，已使用默认存档。', err);
-      return { ...DEFAULT_SAVE };
+      return { ...defaultSave, firstClears: { ...defaultSave.firstClears } };
     }
   }
 
@@ -235,7 +241,7 @@
     };
   }
 
-  function power() {
+  function getPower() {
     return 100 + save.weaponLevel * 80 + save.speedLevel * 60 + save.cooldownLevel * 70;
   }
 
@@ -254,11 +260,15 @@
 
 
   function isLevelUnlocked(levelId) {
-    return levelId <= Math.max(2, save.highestLevel || 1);
+    return levelId <= Math.max(2, (save.highestLevel || 0) + 1);
   }
 
   function firstClearKey(levelId) {
-    return `firstClear${levelId}`;
+    return String(levelId);
+  }
+
+  function isFirstCleared(levelId) {
+    return Boolean(save.firstClears[firstClearKey(levelId)]);
   }
 
   function levelMultiplier(levelId) {
@@ -278,8 +288,8 @@
     Object.values(dom.pages).forEach(page => page.classList.remove('active'));
     dom.pages[name].classList.add('active');
     if (name !== 'battle') stopBattle(false);
-    if (name === 'home') updateHome();
-    if (name === 'levels') renderLevels();
+    if (name === 'home') renderHome();
+    if (name === 'levels') renderLevelSelect();
   }
 
   function showToast(message) {
@@ -309,15 +319,23 @@
 
   function updateHome() {
     dom.homeGold.textContent = save.gold;
-    dom.homePower.textContent = power();
-    dom.homeWeapon.textContent = `Lv.${save.weaponLevel}`;
-    dom.homeCooldown.textContent = `${SKILL_COOLDOWNS[save.cooldownLevel] / 1000} 秒`;
+    dom.homePower.textContent = getPower();
+    dom.homeWeapon.textContent = `武器 Lv.${save.weaponLevel}`;
+    dom.homeSpeed.textContent = `攻速 Lv.${save.speedLevel}`;
+    dom.homeCooldown.textContent = `冷却 ${SKILL_COOLDOWNS[save.cooldownLevel] / 1000} 秒`;
+    dom.homeHighest.textContent = save.highestLevel > 0 ? `最高 第 ${save.highestLevel} 关` : '最高 未通关';
   }
+
+
+  const renderHome = updateHome;
+  const renderLevelSelect = renderLevels;
+  const renderUpgradeModal = renderUpgrades;
+  const renderBattleHud = updateBattleHud;
 
   function renderLevels() {
     dom.levelList.innerHTML = '';
     Object.values(LEVELS).forEach(level => {
-      const cleared = save[firstClearKey(level.id)];
+      const cleared = isFirstCleared(level.id);
       const unlocked = isLevelUnlocked(level.id);
       const card = document.createElement('article');
       card.className = `level-card ${unlocked ? '' : 'locked'}`;
@@ -390,6 +408,7 @@
       spawned: 0,
       earnedGold: 0,
       pendingBuffKills: [...level.buffKills],
+      totalMonsters: level.waves.length,
       boss: null,
       bossBuffGiven: false,
       lastTime: performance.now(),
@@ -401,7 +420,7 @@
     battle.targetHeroX = battle.heroX;
     battle.heroY = battle.height * 0.84;
     updateHero(true);
-    updateBattleHud();
+    renderBattleHud();
     updateSkillButton();
     cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(loop);
@@ -460,7 +479,7 @@
     updateBullets(dt);
     updateEffects(dt);
     updateBossBehavior(dt);
-    updateBattleHud();
+    renderBattleHud();
     checkBattleEnd();
   }
 
@@ -497,7 +516,8 @@
     const monster = createMonsterState(type, cfg, laneIndex, x, y, el);
     battle.monsters.push(monster);
     if (cfg.isBoss) onBossSpawn(monster);
-    if (!forced) battle.spawned += 1;
+    if (forced) battle.totalMonsters += 1;
+    else battle.spawned += 1;
     battle.spawnTimer = battle.level.spawnInterval;
     position(el, x, y);
   }
@@ -553,25 +573,22 @@
   }
 
   function shootBullet() {
-    const target = selectTarget();
-    if (!target) return;
+    const shotX = battle.heroX + 10;
+    const shotY = battle.heroY - 48;
     const el = document.createElement('div');
     el.className = 'bullet magic-bullet';
     el.innerHTML = '<span class="bullet-trail"></span><span class="bullet-core"></span>';
     dom.entityLayer.appendChild(el);
     const bullet = {
       id: uid++,
-      startX: battle.heroX + 10,
-      startY: battle.heroY - 48,
-      x: battle.heroX + 10,
-      y: battle.heroY - 48,
-      targetId: target.id,
-      targetX: target.x,
-      targetY: target.y,
-      speed: 430,
-      progress: 0,
+      startX: shotX,
+      startY: shotY,
+      x: shotX,
+      y: shotY,
+      speed: 520,
       damage: baseDamage(),
       pierceLeft: battle.runBuffs.pierce,
+      lane: getPlayerLane(),
       hitIds: new Set(),
       el,
     };
@@ -579,38 +596,24 @@
     position(el, bullet.x, bullet.y);
   }
 
-  function selectTarget() {
-    if (!battle.monsters.length) return null;
-    return [...battle.monsters].sort((a, b) => {
-      const ax = Math.abs(a.x - battle.heroX);
-      const bx = Math.abs(b.x - battle.heroX);
-      const ay = battle.height - a.y;
-      const by = battle.height - b.y;
-      return (ax * 1.3 + ay * 0.55) - (bx * 1.3 + by * 0.55);
-    })[0];
+  function getPlayerLane() {
+    return laneRatios.reduce((best, ratio, index) => {
+      const distanceToLane = Math.abs(battle.heroX - battle.width * ratio);
+      return distanceToLane < best.distance ? { index, distance: distanceToLane } : best;
+    }, { index: 1, distance: Infinity }).index;
   }
 
   function updateBullets(dt) {
+    const hitRadiusX = 34;
+    const hitRadiusY = 36;
     for (const bullet of [...battle.bullets]) {
-      const target = battle.monsters.find(m => m.id === bullet.targetId) || selectTarget();
-      if (target) {
-        bullet.targetId = target.id;
-        bullet.targetX = target.x;
-        bullet.targetY = target.y - 8;
-      } else {
-        bullet.targetY = -40;
-      }
-      const dx = bullet.targetX - bullet.x;
-      const dy = bullet.targetY - bullet.y;
-      const len = Math.hypot(dx, dy) || 1;
-      const curve = Math.sin(bullet.progress * Math.PI) * 38;
-      bullet.x += (dx / len) * bullet.speed * dt + (bullet.targetX - bullet.x) * 0.055 * dt * 60;
-      bullet.y += (dy / len) * bullet.speed * dt - curve * dt;
-      bullet.progress += dt * 2.4;
-      bullet.el.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(dy, dx) + Math.PI / 2}rad)`;
+      bullet.y -= bullet.speed * dt;
+      bullet.el.style.transform = 'translate(-50%, -50%)';
       position(bullet.el, bullet.x, bullet.y);
 
-      const hit = battle.monsters.find(m => !bullet.hitIds.has(m.id) && distance(m, bullet) < 36);
+      const hit = battle.monsters.find(m => !bullet.hitIds.has(m.id)
+        && Math.abs(m.x - bullet.x) < hitRadiusX
+        && Math.abs(m.y - bullet.y) < hitRadiusY);
       if (hit) {
         bullet.hitIds.add(hit.id);
         showHitSpark(hit.x, hit.y - 4, false);
@@ -618,11 +621,10 @@
         if (battle.runBuffs.blast) explodeAt(hit.x, hit.y, 46, bullet.damage * 0.45, false);
         if (bullet.pierceLeft > 0) {
           bullet.pierceLeft -= 1;
-          bullet.targetId = 0;
         } else {
           removeBullet(bullet);
         }
-      } else if (bullet.y < -50 || bullet.x < -40 || bullet.x > battle.width + 40 || bullet.progress > 4) {
+      } else if (bullet.y < -50) {
         removeBullet(bullet);
       }
     }
@@ -754,11 +756,11 @@
     battle.active = false;
     cancelAnimationFrame(rafId);
     if (win) {
-      const firstBonus = save[firstKey] ? 0 : level.firstReward;
+      const firstBonus = save.firstClears[firstKey] ? 0 : level.firstReward;
       const total = level.reward + firstBonus + battle.earnedGold;
       save.gold += total;
-      save[firstKey] = true;
-      save.highestLevel = Math.max(save.highestLevel || 1, Math.min(8, level.id + 1));
+      save.firstClears[firstKey] = true;
+      save.highestLevel = Math.max(save.highestLevel || 0, level.id);
       writeSave();
       showResult(true, total, firstBonus);
     } else {
@@ -771,11 +773,11 @@
     resetResultModal();
     dom.resultTitle.textContent = win ? '通关成功' : '城墙被攻破';
     if (win) {
-      dom.resultDesc.innerHTML = `<strong>获得金币：${gold}</strong>${firstBonus ? `<span>首次通关奖励：${firstBonus}</span>` : ''}`;
-      dom.resultStats.textContent = `当前战斗力：${power()}`;
+      dom.resultDesc.innerHTML = `<strong>总获得金币：${gold}</strong><span>基础通关奖励：${battle.level.reward}</span><span>本局击杀金币：${battle.earnedGold}</span>${firstBonus ? `<span>首次通关奖励：${firstBonus}</span>` : ''}`;
+      dom.resultStats.textContent = `当前战斗力：${getPower()}`;
     } else {
       dom.resultDesc.textContent = '怪物突破了防线，升级装备后再来挑战吧';
-      dom.resultStats.textContent = `当前战斗力：${power()} · 本局击杀：${battle.killed}`;
+      dom.resultStats.textContent = `当前战斗力：${getPower()} · 本局击杀：${battle.killed}`;
     }
     const homeBtn = actionButton('返回首页', () => { closeModal(); resetResultModal(); showPage('home'); });
     dom.resultActions.appendChild(homeBtn);
@@ -881,15 +883,15 @@
   }
 
   function openStatusModal() {
-    const cleared = Array.from({ length: 8 }, (_, i) => i + 1).filter(id => save[firstClearKey(id)]).length;
+    const highest = save.highestLevel || 0;
     openInfoModal('当前状态', '这里展示当前本地存档数据。', `
       <div class="status-grid">
         <div>金币<strong>${save.gold}</strong></div>
-        <div>战斗力<strong>${power()}</strong></div>
+        <div>战斗力<strong>${getPower()}</strong></div>
         <div>武器等级<strong>Lv.${save.weaponLevel}</strong></div>
         <div>攻速等级<strong>Lv.${save.speedLevel}</strong></div>
         <div>冷却等级<strong>Lv.${save.cooldownLevel}</strong></div>
-        <div>最高通关<strong>${cleared ? `第 ${cleared} 关` : '未通关'}</strong></div>
+        <div>最高通关<strong>${highest ? `第 ${highest} 关` : '未通关'}</strong></div>
       </div>`, [
         { text: '重置存档', className: 'btn-danger', onClick: resetSaveFromModal },
         { text: '关闭', onClick: closeModal },
@@ -899,9 +901,9 @@
   function resetSaveFromModal() {
     if (confirm('确定要清空所有存档吗？金币、装备等级和通关记录都会重置。')) {
       localStorage.removeItem(SAVE_KEY);
-      save = { ...DEFAULT_SAVE };
+      save = { ...defaultSave, firstClears: { ...defaultSave.firstClears } };
       writeSave();
-      updateHome();
+      renderHome();
       closeModal();
       showToast('存档已重置');
     }
@@ -915,7 +917,7 @@
 
   function updateBattleHud() {
     if (!battle.level) return;
-    const remaining = battle.spawnQueue.length + battle.monsters.length;
+    const remaining = Math.max(0, battle.totalMonsters - battle.killed);
     dom.battleLevelName.textContent = battle.level.shortName;
     dom.wallHpText.textContent = `${Math.ceil(battle.wallHp)}/${battle.maxWallHp}`;
     dom.remainingText.textContent = remaining;
@@ -981,7 +983,7 @@
   }
 
   function openUpgrade() {
-    renderUpgrades();
+    renderUpgradeModal();
     openModal(dom.upgradeModal);
   }
 
@@ -1065,16 +1067,21 @@
       if (!btn) return;
       const item = UPGRADES[btn.dataset.upgrade];
       const current = save[item.saveKey];
+      if (current >= item.max) {
+        renderUpgradeModal();
+        return;
+      }
       const cost = item.costs[current];
       if (save.gold < cost) {
         showToast('金币不足，请先挑战关卡');
+        renderUpgradeModal();
         return;
       }
       save.gold -= cost;
       save[item.saveKey] += 1;
       writeSave();
-      updateHome();
-      renderUpgrades();
+      renderHome();
+      renderUpgradeModal();
       showToast('升级成功');
     });
     document.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', closeModal));
@@ -1145,8 +1152,8 @@
     applyHotspotDebug();
     resetRunBuffs();
     bindEvents();
-    updateHome();
-    renderLevels();
+    renderHome();
+    renderLevelSelect();
   }
 
   boot();
